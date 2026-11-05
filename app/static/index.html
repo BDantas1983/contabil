@@ -504,34 +504,99 @@ FOLHA SALARIO ADMISSAO DIGITAL 6800,00</textarea>
 
           <!-- TABELA DE LANÇAMENTOS CLASSIFICADOS + CRUZAMENTO LADO A LADO + PREVIEW ERP -->
           <div class="lg:col-span-2 space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div>
-                <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-                  <i class="fa-solid fa-arrows-split-up-and-left text-indigo-600"></i>
-                  Cruzamento Lado a Lado: Extrato Bancário vs. Partidas Dobradas
-                </h4>
-                <p class="text-[11px] text-slate-500">
-                  Compara a linha bruta extraída do banco com a escrituração contábil gerada, atestando o bate de saldo R$ 0,00.
-                </p>
-              </div>
-              <span id="badge-total-auditados" class="text-[11px] font-semibold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200 self-start sm:self-auto">
-                <i class="fa-solid fa-calculator mr-1 text-slate-500"></i> Auditando lançamentos...
-              </span>
+            <!-- SELETOR DE SUB-ABAS CONTÁBEIS (CRUZAMENTO vs. BALANCETE DE VERIFICAÇÃO) -->
+            <div class="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-2">
+              <button id="subtab-btn-cruzamento" onclick="alternarSubTabContabil('cruzamento')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white flex items-center gap-1.5 shadow-sm transition">
+                <i class="fa-solid fa-arrows-split-up-and-left"></i> 1. Cruzamento Extrato vs. Partidas Dobradas
+              </button>
+              <button id="subtab-btn-balancete" onclick="alternarSubTabContabil('balancete')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-scale-balanced"></i> 2. Balancete de Verificação & Códigos Reduzidos
+              </button>
             </div>
 
-            <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-xs">
-              <table class="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr class="bg-slate-100 text-slate-700 uppercase text-[10px] font-bold tracking-wider">
-                    <th class="py-2.5 px-3">Data / Ref</th>
-                    <th class="py-2.5 px-3">Extrato Original do Banco</th>
-                    <th class="py-2.5 px-3">Valor Movimentado</th>
-                    <th class="py-2.5 px-3">Classificação Contábil (D / C)</th>
-                    <th class="py-2.5 px-3 text-center">Bate de Saldo</th>
-                  </tr>
-                </thead>
-                <tbody id="lista-lancamentos" class="divide-y divide-slate-200"></tbody>
-              </table>
+            <!-- SUB-ABA 1: CRUZAMENTO EXTRATO BANCÁRIO -->
+            <div id="subtab-content-cruzamento" class="space-y-4">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-arrows-split-up-and-left text-indigo-600"></i>
+                    Cruzamento Lado a Lado: Extrato Bancário vs. Partidas Dobradas
+                  </h4>
+                  <p class="text-[11px] text-slate-500">
+                    Compara a linha bruta extraída do banco com a escrituração contábil gerada, atestando o bate de saldo R$ 0,00.
+                  </p>
+                </div>
+                <span id="badge-total-auditados" class="text-[11px] font-semibold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200 self-start sm:self-auto">
+                  <i class="fa-solid fa-calculator mr-1 text-slate-500"></i> Auditando lançamentos...
+                </span>
+              </div>
+
+              <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-xs">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr class="bg-slate-100 text-slate-700 uppercase text-[10px] font-bold tracking-wider">
+                      <th class="py-2.5 px-3">Data / Ref</th>
+                      <th class="py-2.5 px-3">Extrato Original do Banco</th>
+                      <th class="py-2.5 px-3">Valor Movimentado</th>
+                      <th class="py-2.5 px-3">Classificação Contábil (D / C)</th>
+                      <th class="py-2.5 px-3 text-center">Bate de Saldo</th>
+                    </tr>
+                  </thead>
+                  <tbody id="lista-lancamentos" class="divide-y divide-slate-200"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- SUB-ABA 2: BALANCETE DE VERIFICAÇÃO & PLANO DE CONTAS COM CÓDIGOS REDUZIDOS -->
+            <div id="subtab-content-balancete" class="hidden space-y-4">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-scale-balanced text-emerald-600"></i>
+                    Balancete de Verificação & Razão Contábil Oficial
+                  </h4>
+                  <p class="text-[11px] text-slate-500">
+                    Consolida todas as contas patrimoniais (Caixa, Bancos, Clientes, Fornecedores) e de resultado com seus <strong>Códigos Reduzidos</strong>.
+                  </p>
+                </div>
+                <span id="badge-balancete-status" class="bg-emerald-500 text-slate-950 font-bold px-2.5 py-1 rounded-md text-[11px] shadow-sm flex items-center gap-1">
+                  <i class="fa-solid fa-check"></i> Débito = Crédito (Equilibrado)
+                </span>
+              </div>
+
+              <!-- MINI-DASHBOARD DO BALANCETE -->
+              <div class="grid grid-cols-3 gap-3 text-xs">
+                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                  <div class="text-[10px] font-bold text-slate-500 uppercase">Total Movimento Débitos</div>
+                  <div id="balancete-total-debitos" class="text-sm font-bold font-mono text-rose-700 mt-0.5">R$ 24.710,45</div>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                  <div class="text-[10px] font-bold text-slate-500 uppercase">Total Movimento Créditos</div>
+                  <div id="balancete-total-creditos" class="text-sm font-bold font-mono text-emerald-700 mt-0.5">R$ 24.710,45</div>
+                </div>
+                <div class="bg-emerald-50 p-3 rounded-lg border border-emerald-200">
+                  <div class="text-[10px] font-bold text-emerald-700 uppercase">Diferença de Balanceamento</div>
+                  <div id="balancete-diferenca" class="text-sm font-extrabold font-mono text-emerald-800 mt-0.5">R$ 0,00</div>
+                </div>
+              </div>
+
+              <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-xs">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr class="bg-slate-100 text-slate-700 uppercase text-[10px] font-bold tracking-wider">
+                      <th class="py-2.5 px-3">Cód. Reduzido</th>
+                      <th class="py-2.5 px-3">Classificação</th>
+                      <th class="py-2.5 px-3">Conta Contábil / Descrição</th>
+                      <th class="py-2.5 px-3">Grupo</th>
+                      <th class="py-2.5 px-3 text-right">Débitos (+)</th>
+                      <th class="py-2.5 px-3 text-right">Créditos (-)</th>
+                      <th class="py-2.5 px-3 text-right">Saldo Atual</th>
+                      <th class="py-2.5 px-3 text-center">D/C</th>
+                    </tr>
+                  </thead>
+                  <tbody id="lista-balancete" class="divide-y divide-slate-200"></tbody>
+                </table>
+              </div>
             </div>
 
             <div id="box-erp-preview" class="hidden bg-slate-950 text-emerald-300 p-4 rounded-xl border border-slate-800 font-mono text-xs space-y-2">

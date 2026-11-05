@@ -210,6 +210,37 @@ class ResumoConciliacaoBancaria(BaseModel):
     total_linhas_conciliadas: int
 
 
+class ContaPlanoContas(BaseModel):
+    codigo_reduzido: int
+    codigo_estruturado: str
+    nome_conta: str
+    grupo: str  # "1. ATIVO", "2. PASSIVO", "3. RECEITAS", "4. DESPESAS"
+    natureza: str  # "DEVEDORA" ou "CREDORA"
+    tipo_analitica: str = "ANALITICA"
+
+
+class LinhaBalancete(BaseModel):
+    codigo_reduzido: int
+    codigo_estruturado: str
+    nome_conta: str
+    grupo: str
+    saldo_anterior: float
+    debitos: float
+    creditos: float
+    saldo_atual: float
+    natureza_saldo: str  # "D" ou "C"
+
+
+class BalanceteVerificacaoResponse(BaseModel):
+    empresa_nome: str
+    periodo: str
+    total_debitos: float
+    total_creditos: float
+    diferenca_balanceamento: float = 0.00
+    status_equilibrio: str = "EQUILIBRADO (DÉBITO = CRÉDITO)"
+    linhas: List[LinhaBalancete]
+
+
 class ProcessarExtratoRequest(BaseModel):
     empresa_id: str
     tipo_arquivo: str = "OFX"  # "OFX", "PDF_OCR", "CSV"

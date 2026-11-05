@@ -247,6 +247,18 @@ async def get_conciliacao_resumo(empresa_id: Optional[str] = None):
     return modules_service.obter_resumo_conciliacao_bancaria(empresa_id)
 
 
+@app.get("/api/v1/contabil/plano-contas", tags=["3. Módulo Contábil & ERPs"])
+async def get_plano_contas():
+    """Retorna o Plano de Contas com Códigos Estruturados e Reduzidos para integração contábil."""
+    return modules_service.listar_plano_de_contas()
+
+
+@app.get("/api/v1/contabil/balancete", tags=["3. Módulo Contábil & ERPs"])
+async def get_balancete_verificacao(empresa_id: Optional[str] = None):
+    """Gera o Balancete de Verificação oficial com todas as contas de Ativo, Passivo, Receitas e Despesas."""
+    return modules_service.obter_balancete_verificacao(empresa_id)
+
+
 @app.post("/api/v1/contabil/processar-extrato", tags=["3. Módulo Contábil & ERPs"])
 async def processar_extrato_contabil(req: ProcessarExtratoRequest):
     """Processa extrato (OFX/PDF/CSV) e classifica Débito/Crédito automaticamente no Plano de Contas."""

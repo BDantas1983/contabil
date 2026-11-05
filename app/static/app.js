@@ -590,6 +590,89 @@ async function carregarLancamentosContabeis() {
   }
 }
 
+function alternarSubTabContabil(subtab) {
+  const btnCruz = document.getElementById("subtab-btn-cruzamento");
+  const btnBal = document.getElementById("subtab-btn-balancete");
+  const secCruz = document.getElementById("subtab-content-cruzamento");
+  const secBal = document.getElementById("subtab-content-balancete");
+
+  if (subtab === "balancete") {
+    btnBal.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white flex items-center gap-1.5 shadow-sm transition";
+    btnCruz.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-1.5 transition";
+    secBal.classList.remove("hidden");
+    secCruz.classList.add("hidden");
+    carregarBalanceteVerificacao();
+  } else {
+    btnCruz.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white flex items-center gap-1.5 shadow-sm transition";
+    btnBal.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-1.5 transition";
+    secCruz.classList.remove("hidden");
+    secBal.classList.add("hidden");
+    carregarLancamentosContabeis();
+  }
+}
+
+async function carregarBalanceteVerificacao() {
+  try {
+    let empresaId = null;
+    if (sessaoUsuario && sessaoUsuario.role === "CLIENTE_FINAL" && sessaoUsuario.empresa_vinculada_id) {
+      empresaId = sessaoUsuario.empresa_vinculada_id;
+    }
+    const url = empresaId ? `/api/v1/contabil/balancete?empresa_id=${encodeURIComponent(empresaId)}` : "/api/v1/contabil/balancete";
+    const res = await fetch(url);
+    if (!res.ok) return;
+    const data = await res.json();
+
+    const elDeb = document.getElementById("balancete-total-debitos");
+    if (elDeb) elDeb.innerText = `R$ ${data.total_debitos.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+
+    const elCred = document.getElementById("balancete-total-creditos");
+    if (elCred) elCred.innerText = `R$ ${data.total_creditos.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+
+    const elDif = document.getElementById("balancete-diferenca");
+    if (elDif) elDif.innerText = `R$ ${data.diferenca_balanceamento.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+
+    const tbody = document.getElementById("lista-balancete");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+
+    data.linhas.forEach(l => {
+      const tr = document.createElement("tr");
+      tr.className = "hover:bg-slate-50 transition-colors";
+      tr.innerHTML = `
+        <td class="py-2.5 px-3 font-mono font-bold text-indigo-700 whitespace-nowrap">
+          <span class="bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded text-[11px]">${l.codigo_reduzido}</span>
+        </td>
+        <td class="py-2.5 px-3 font-mono text-slate-600 text-[11px] whitespace-nowrap">
+          ${l.codigo_estruturado}
+        </td>
+        <td class="py-2.5 px-3 font-semibold text-slate-800 text-[11px]">
+          ${l.nome_conta}
+        </td>
+        <td class="py-2.5 px-3 text-[10px] text-slate-500 font-medium">
+          ${l.grupo}
+        </td>
+        <td class="py-2.5 px-3 text-right font-mono font-medium text-rose-700 whitespace-nowrap">
+          ${l.debitos > 0 ? 'R$ ' + l.debitos.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) : '-'}
+        </td>
+        <td class="py-2.5 px-3 text-right font-mono font-medium text-emerald-700 whitespace-nowrap">
+          ${l.creditos > 0 ? 'R$ ' + l.creditos.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) : '-'}
+        </td>
+        <td class="py-2.5 px-3 text-right font-mono font-bold text-slate-900 whitespace-nowrap">
+          R$ ${l.saldo_atual.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+        </td>
+        <td class="py-2.5 px-3 text-center whitespace-nowrap">
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${l.natureza_saldo === 'D' ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700'}">
+            ${l.natureza_saldo}
+          </span>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (e) {
+    console.error("Erro ao carregar balancete:", e);
+  }
+}
+
 async function processarExtratoIA() {
   const payload = {
     empresa_id: document.getElementById("contabil-empresa").value,
