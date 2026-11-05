@@ -7,3 +7,4 @@ venv/
 ENV/
 data/*.db
 data/minio_encrypted_storage/*.envelope.json
+
