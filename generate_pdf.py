@@ -344,10 +344,60 @@ def build_pdf(filename="d:/contabil/PLAYBOOK_SaaS_Contabil.pdf"):
 
     # SEÇÃO 7: ROTEIRO DE IMPLEMENTAÇÃO
     story.append(Paragraph("7. Roteiro de Implementação do Projeto Piloto", h1_style))
-    story.append(Paragraph("• <b>Semana 1 e 2 (Validação com a Professora):</b> Apresentação deste playbook e do MVP funcional; alinhamento dos ERPs utilizados e seleção dos 20 clientes para o grupo piloto.", bullet_style))
+    story.append(Paragraph("• <b>Semana 1 e 2 (Validação Piloto):</b> Apresentação deste playbook e do MVP funcional; alinhamento dos ERPs utilizados e seleção dos clientes do grupo piloto.", bullet_style))
     story.append(Paragraph("• <b>Semana 3 e 4 (Refinamento Técnico):</b> Configuração do ambiente em VPS nacional e testes do robô Playwright para os órgãos prioritários (Receita Federal e FGTS).", bullet_style))
-    story.append(Paragraph("• <b>Semana 5 e 6 (Operação em Beta Fechado):</b> Execução diária no escritório da professora para medir as horas reais economizadas e emissão de alertas preventivos.", bullet_style))
+    story.append(Paragraph("• <b>Semana 5 e 6 (Operação em Beta Fechado):</b> Execução diária no escritório contábil para medir as horas reais economizadas e emissão de alertas preventivos.", bullet_style))
     story.append(Paragraph("• <b>Semana 7 em diante (Expansão Comercial):</b> Utilização dos resultados comprovados do piloto como estudo de caso para atrair novos escritórios contábeis.", bullet_style))
+    story.append(Spacer(1, 10))
+
+    # SEÇÃO 8: MANUAL OPERACIONAL E JORNADAS DE USO (GUIA DE OPERAÇÃO)
+    story.append(Paragraph("8. Manual Operacional e Jornadas de Uso da Solução", h1_style))
+    story.append(Paragraph(
+        "Detalhamento formal das jornadas de uso dos usuários e governança de acesso multi-tenant na operação cotidiana do SaaS:", body_style
+    ))
+
+    story.append(Paragraph("8.1 Topologia de Acesso Multi-Tenant (PostgreSQL RLS & RBAC)", h2_style))
+    story.append(Paragraph(
+        "A solução adota uma hierarquia estruturada em três níveis com isolamento criptográfico e de dados: "
+        "<b>1. Provedor SaaS</b> (gestão de infraestrutura e KMS) ➔ <b>2. Escritórios Contábeis Assinantes (Tenants)</b> "
+        "(isolamento nativo via <code>PostgreSQL Row-Level Security</code> com injeção de <code>current_tenant_id</code>) ➔ "
+        "<b>3. Empresas Clientes da Carteira</b> (acesso restrito aos dados do seu respectivo CNPJ).", body_style
+    ))
+
+    story.append(Paragraph("8.2 Jornada Operacional do Escritório Contábil (Backoffice)", h2_style))
+    story.append(Paragraph("• <b>Conformidade Legal & CNDs 24/7:</b> Varredura autônoma via Playwright (Receita/PGFN, FGTS Caixa CRF, Sefaz Estadual, CNDT/TST e Prefeituras) com download de PDF oficial e hash SHA-256.", bullet_style))
+    story.append(Paragraph("• <b>Cofre de Certificados A1 (.pfx):</b> Envelope Encryption (AES-GCM-256) com descriptografia volátil em RAM (`bytearray`) e sobrescrita imediata com zeros (0x00) pós-requisição (zero gravação em disco).", bullet_style))
+    story.append(Paragraph("• <b>Módulo Contábil & ERPs:</b> Ingestão de extratos OFX/PDF, classificação automática por IA no Plano de Contas e exportação para Domínio Sistemas, Alterdata, Questor, Contmatic e Fortes.", bullet_style))
+    story.append(Paragraph("• <b>Módulo Fiscal:</b> Captura de XMLs com proteção anti-XXE (`defusedxml`), apuração automática de PGDAS-D / DARF e emissão de guias com PIX Copia e Cola e código de barras.", bullet_style))
+    story.append(Paragraph("• <b>Módulo DP / eSocial:</b> Validação de admissões digitais, cálculo de encargos (INSS/IRRF/FGTS), anonimização LGPD (Data Masking) e evento eSocial S-2200.", bullet_style))
+    story.append(Paragraph("• <b>SIEM & Trilha de Auditoria:</b> Histórico imutável de eventos em formato WORM com encadeamento de blocos criptográficos SHA-256.", bullet_style))
+
+    story.append(Paragraph("8.3 Jornada da Empresa Cliente (Experiência Omnichannel Híbrida)", h2_style))
+    story.append(Paragraph("• <b>Canal WhatsApp Bot (Interação Passiva / Zero-Friction):</b> O cliente recebe guias com PIX no vencimento e responde com fotos/PDFs de extratos mensais, validados por IA contra fotos desfocadas.", bullet_style))
+    story.append(Paragraph("• <b>Portal Web do Cliente (Autoatendimento 24/7):</b> Acesso seguro com perfil <code>CLIENTE_FINAL</code> restrito à própria empresa para download de CNDs, guias tributárias e holerites.", bullet_style))
+    story.append(Spacer(1, 6))
+
+    # TABELA DE AMBIENTES DE HOMOLOGAÇÃO
+    story.append(Paragraph("8.4 Ambientes de Homologação e Demonstração Disponíveis", h2_style))
+    ambientes_data = [
+        [Paragraph("Ambiente", th_style), Paragraph("Provedor / Plataforma", th_style), Paragraph("Endereço / URL", th_style), Paragraph("Finalidade", th_style)],
+        [Paragraph("<b>Produção Primária</b>", td_style), Paragraph("Vercel (Serverless Edge)", td_style), Paragraph("contabil-lac.vercel.app", td_style), Paragraph("Acesso web HTTPS de alta performance.", td_style)],
+        [Paragraph("<b>Produção Secundária</b>", td_style), Paragraph("Render (Container Service)", td_style), Paragraph("contabil-vvxp.onrender.com", td_style), Paragraph("Instância contínua com workers.", td_style)],
+        [Paragraph("<b>Documentação API</b>", td_style), Paragraph("Swagger / OpenAPI", td_style), Paragraph("contabil-lac.vercel.app/docs", td_style), Paragraph("Catálogo de endpoints RESTful.", td_style)],
+        [Paragraph("<b>Repositório Git</b>", td_style), Paragraph("GitHub (Versionamento)", td_style), Paragraph("github.com/BDantas1983/contabil", td_style), Paragraph("Código-fonte auditável.", td_style)],
+    ]
+    t_amb = Table(ambientes_data, colWidths=[36*mm, 44*mm, 52*mm, 42*mm])
+    t_amb.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), c_primary),
+        ('GRID', (0,0), (-1,-1), 0.5, c_border),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, c_bg_light]),
+        ('TOPPADDING', (0,0), (-1,-1), 4),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+        ('LEFTPADDING', (0,0), (-1,-1), 5),
+        ('RIGHTPADDING', (0,0), (-1,-1), 5),
+    ]))
+    story.append(t_amb)
+    story.append(Spacer(1, 10))
 
     # BUILD
     doc.build(story, canvasmaker=NumberedCanvas)

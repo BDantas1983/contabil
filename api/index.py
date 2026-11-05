@@ -11,3 +11,4 @@ from app.main import app
 
 # Exporta para o handler Serverless da Vercel
 application = app
+
