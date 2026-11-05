@@ -388,6 +388,68 @@
           </div>
         </div>
 
+        <!-- PAINEL DE BATE DE SALDO & AUDITORIA CENTAVO A CENTAVO (EXTRATO BANCÁRIO VS. CONTABILIDADE) -->
+        <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 p-5 rounded-2xl text-white shadow-md border border-slate-700">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-700/80">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                  <i class="fa-solid fa-shield-halved mr-1"></i> Auditoria Contábil Automatizada
+                </span>
+                <span class="text-xs text-slate-300" id="bate-empresa-banco">Banco Itaú Unibanco S/A • Ag. 0422 C/C 81920-1</span>
+              </div>
+              <h3 class="text-lg font-bold text-white mt-1">
+                Conferência Cruzada de Saldos: Extrato Bancário vs. Livro Razão Contábil
+              </h3>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="bate-status-badge" class="bg-emerald-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-circle-check"></i>
+                <span>Diferença: R$ 0,00 (100% Conciliado)</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- CARDS DE SALDOS (BATE MATEMÁTICO) -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mt-4 text-xs">
+            <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+              <div class="text-[11px] text-slate-400 font-medium">Saldo Inicial (Extrato)</div>
+              <div id="bate-saldo-inicial" class="text-sm font-bold font-mono text-slate-100 mt-1">R$ 25.430,00</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">Saldo em 01/11/2026</div>
+            </div>
+
+            <div class="bg-slate-800/80 p-3 rounded-xl border border-emerald-900/60">
+              <div class="text-[11px] text-emerald-400 font-medium">(+) Entradas / Créditos</div>
+              <div id="bate-entradas" class="text-sm font-bold font-mono text-emerald-300 mt-1">+ R$ 14.500,00</div>
+              <div class="text-[10px] text-emerald-400/80 mt-0.5">Receitas / PIX / TEDs</div>
+            </div>
+
+            <div class="bg-slate-800/80 p-3 rounded-xl border border-rose-900/60">
+              <div class="text-[11px] text-rose-400 font-medium">(-) Saídas / Débitos</div>
+              <div id="bate-saidas" class="text-sm font-bold font-mono text-rose-300 mt-1">- R$ 10.210,45</div>
+              <div class="text-[10px] text-rose-400/80 mt-0.5">Tributos, Folha, Fornec.</div>
+            </div>
+
+            <div class="bg-slate-800/80 p-3 rounded-xl border border-sky-900/60">
+              <div class="text-[11px] text-sky-400 font-medium">(=) Saldo Final Banco</div>
+              <div id="bate-saldo-final-banco" class="text-sm font-bold font-mono text-sky-200 mt-1">R$ 29.719,55</div>
+              <div class="text-[10px] text-sky-400/80 mt-0.5">Extrato Oficial (OFX/PDF)</div>
+            </div>
+
+            <div class="bg-slate-800/80 p-3 rounded-xl border border-indigo-900/60">
+              <div class="text-[11px] text-indigo-300 font-medium">(=) Saldo Razão Contábil</div>
+              <div id="bate-saldo-final-contabil" class="text-sm font-bold font-mono text-indigo-200 mt-1">R$ 29.719,55</div>
+              <div class="text-[10px] text-indigo-300/80 mt-0.5">Conta Banco no ERP</div>
+            </div>
+
+            <div class="bg-emerald-950/60 p-3 rounded-xl border border-emerald-600/70">
+              <div class="text-[11px] text-emerald-300 font-medium">Diferença de Bate</div>
+              <div id="bate-diferenca" class="text-base font-extrabold font-mono text-emerald-400 mt-0.5">R$ 0,00</div>
+              <div class="text-[10px] text-emerald-300/90 mt-0.5 font-semibold">100% Conciliado</div>
+            </div>
+          </div>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <!-- ENTRADA DE EXTRATO / OCR -->
           <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 text-xs">
@@ -440,17 +502,32 @@ FOLHA SALARIO ADMISSAO DIGITAL 6800,00</textarea>
             </div>
           </div>
 
-          <!-- TABELA DE LANÇAMENTOS CLASSIFICADOS + PREVIEW ERP -->
+          <!-- TABELA DE LANÇAMENTOS CLASSIFICADOS + CRUZAMENTO LADO A LADO + PREVIEW ERP -->
           <div class="lg:col-span-2 space-y-4">
-            <div class="overflow-x-auto">
-              <table class="w-full text-left border-collapse text-xs border border-slate-200 rounded-lg overflow-hidden">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                  <i class="fa-solid fa-arrows-split-up-and-left text-indigo-600"></i>
+                  Cruzamento Lado a Lado: Extrato Bancário vs. Partidas Dobradas
+                </h4>
+                <p class="text-[11px] text-slate-500">
+                  Compara a linha bruta extraída do banco com a escrituração contábil gerada, atestando o bate de saldo R$ 0,00.
+                </p>
+              </div>
+              <span id="badge-total-auditados" class="text-[11px] font-semibold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200 self-start sm:self-auto">
+                <i class="fa-solid fa-calculator mr-1 text-slate-500"></i> Auditando lançamentos...
+              </span>
+            </div>
+
+            <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-xs">
+              <table class="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr class="bg-slate-100 text-slate-600 uppercase text-[11px] font-semibold">
-                    <th class="py-2.5 px-3">Data / Empresa</th>
-                    <th class="py-2.5 px-3">Histórico Extraído</th>
-                    <th class="py-2.5 px-3">Valor</th>
-                    <th class="py-2.5 px-3">Débito / Crédito (Plano de Contas)</th>
-                    <th class="py-2.5 px-3">Confiança IA</th>
+                  <tr class="bg-slate-100 text-slate-700 uppercase text-[10px] font-bold tracking-wider">
+                    <th class="py-2.5 px-3">Data / Ref</th>
+                    <th class="py-2.5 px-3">Extrato Original do Banco</th>
+                    <th class="py-2.5 px-3">Valor Movimentado</th>
+                    <th class="py-2.5 px-3">Classificação Contábil (D / C)</th>
+                    <th class="py-2.5 px-3 text-center">Bate de Saldo</th>
                   </tr>
                 </thead>
                 <tbody id="lista-lancamentos" class="divide-y divide-slate-200"></tbody>

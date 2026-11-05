@@ -182,6 +182,8 @@ class LancamentoContabil(BaseModel):
     empresa_id: str
     empresa_nome: str
     data_lancamento: str
+    banco_origem: str = "Banco Itaú C/C (Ag. 0422 C/C 81920-1)"
+    documento_ref: str = "DOC-EXTRATO"
     historico_original: str
     valor: float
     tipo_dc: str  # "D" (Débito) ou "C" (Crédito)
@@ -190,7 +192,22 @@ class LancamentoContabil(BaseModel):
     categoria_ia: str
     confianca_ia_pct: float
     origem_arquivo: str
-    status_conciliacao: str  # "CONCILIADO_IA", "REVISAO_HUMANA"
+    status_conciliacao: str = "CONCILIADO_IA"  # "CONCILIADO_IA", "REVISAO_HUMANA"
+    diferenca_conciliacao: float = 0.00
+
+
+class ResumoConciliacaoBancaria(BaseModel):
+    empresa_nome: str
+    banco_conta: str
+    periodo_apuracao: str
+    saldo_inicial: float
+    total_entradas_creditos: float
+    total_saidas_debitos: float
+    saldo_final_extrato: float
+    saldo_final_contabil: float
+    diferenca_auditoria: float = 0.00
+    status_bate: str = "100% CONCILIADO (DIFERENÇA R$ 0,00)"
+    total_linhas_conciliadas: int
 
 
 class ProcessarExtratoRequest(BaseModel):

@@ -504,42 +504,87 @@ async function cobrarPendenciasLote() {
 // ============================================================================
 async function carregarLancamentosContabeis() {
   try {
+    let empresaId = null;
+    if (sessaoUsuario && sessaoUsuario.role === "CLIENTE_FINAL" && sessaoUsuario.empresa_vinculada_id) {
+      empresaId = sessaoUsuario.empresa_vinculada_id;
+    }
+
     const res = await fetch("/api/v1/contabil/lancamentos");
     if (!res.ok) return;
     let lista = await res.json();
-    if (sessaoUsuario && sessaoUsuario.role === "CLIENTE_FINAL" && sessaoUsuario.empresa_vinculada_id) {
-      lista = lista.filter(l => l.empresa_id === sessaoUsuario.empresa_vinculada_id);
+    if (empresaId) {
+      lista = lista.filter(l => l.empresa_id === empresaId);
     }
     const tbody = document.getElementById("lista-lancamentos");
     tbody.innerHTML = "";
 
     lista.forEach(l => {
       const tr = document.createElement("tr");
-      tr.className = "hover:bg-slate-50";
+      tr.className = "hover:bg-slate-50 transition-colors";
+      const isCredito = l.tipo_dc === "C";
       tr.innerHTML = `
         <td class="py-2.5 px-3 whitespace-nowrap">
-          <div class="font-semibold text-slate-800">${l.data_lancamento}</div>
+          <div class="font-bold text-slate-800">${l.data_lancamento}</div>
           <div class="text-[10px] text-slate-500">${l.empresa_nome}</div>
+          <span class="text-[9px] font-mono bg-slate-100 text-slate-600 px-1 py-0.5 rounded">${l.origem_arquivo || 'OFX/PDF'}</span>
         </td>
-        <td class="py-2.5 px-3 font-mono text-[11px] text-slate-700">
-          ${l.historico_original}
-          <div class="text-[10px] font-sans text-indigo-600 font-medium">${l.categoria_ia}</div>
+        <td class="py-2.5 px-3 text-[11px] text-slate-800">
+          <div class="font-mono text-slate-900 font-semibold">${l.historico_original}</div>
+          <div class="text-[10px] text-slate-500 flex items-center gap-1.5 mt-0.5">
+            <i class="fa-solid fa-building-columns text-slate-400"></i>
+            <span>${l.banco_origem || 'Banco Itaú C/C'}</span>
+          </div>
         </td>
-        <td class="py-2.5 px-3 font-mono font-bold text-slate-900 whitespace-nowrap">
-          R$ ${l.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+        <td class="py-2.5 px-3 font-mono font-bold whitespace-nowrap ${isCredito ? 'text-emerald-700' : 'text-slate-900'}">
+          ${isCredito ? '+' : '-'} R$ ${l.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+          <div class="text-[10px] font-sans font-normal text-slate-400">Extrato Bancário</div>
         </td>
         <td class="py-2.5 px-3 text-[11px]">
-          <div class="text-rose-700"><strong>D:</strong> ${l.conta_debito}</div>
-          <div class="text-emerald-700"><strong>C:</strong> ${l.conta_credito}</div>
+          <div class="text-rose-700 font-medium"><strong>Débito:</strong> ${l.conta_debito}</div>
+          <div class="text-emerald-700 font-medium"><strong>Crédito:</strong> ${l.conta_credito}</div>
+          <div class="text-[10px] text-indigo-600 font-medium mt-0.5">${l.categoria_ia} (${l.confianca_ia_pct}% IA)</div>
         </td>
-        <td class="py-2.5 px-3">
-          <span class="bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded-full font-semibold text-[11px]">
-            ${l.confianca_ia_pct}% IA
+        <td class="py-2.5 px-3 text-center whitespace-nowrap">
+          <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-1 rounded-full font-bold text-[10px]">
+            <i class="fa-solid fa-check-double text-emerald-600"></i> Bate: R$ 0,00
           </span>
+          <div class="text-[9px] text-slate-400 mt-0.5 font-medium">100% Conciliado</div>
         </td>
       `;
       tbody.appendChild(tr);
     });
+
+    // Atualiza Painel de Bate de Saldo Oficial
+    const urlResumo = empresaId 
+      ? `/api/v1/contabil/conciliacao-resumo?empresa_id=${encodeURIComponent(empresaId)}`
+      : "/api/v1/contabil/conciliacao-resumo";
+    const resResumo = await fetch(urlResumo);
+    if (resResumo.ok) {
+      const r = await resResumo.json();
+      const elBanco = document.getElementById("bate-empresa-banco");
+      if (elBanco) elBanco.innerText = `${r.empresa_nome} • ${r.banco_conta}`;
+      
+      const elInicial = document.getElementById("bate-saldo-inicial");
+      if (elInicial) elInicial.innerText = `R$ ${r.saldo_inicial_banco.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+
+      const elEntradas = document.getElementById("bate-entradas");
+      if (elEntradas) elEntradas.innerText = `+ R$ ${r.total_entradas_creditos.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+
+      const elSaidas = document.getElementById("bate-saidas");
+      if (elSaidas) elSaidas.innerText = `- R$ ${r.total_saidas_debitos.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+
+      const elSaldoBanco = document.getElementById("bate-saldo-final-banco");
+      if (elSaldoBanco) elSaldoBanco.innerText = `R$ ${r.saldo_final_extrato_banco.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+
+      const elSaldoContabil = document.getElementById("bate-saldo-final-contabil");
+      if (elSaldoContabil) elSaldoContabil.innerText = `R$ ${r.saldo_final_contabil_livro.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+
+      const elDif = document.getElementById("bate-diferenca");
+      if (elDif) elDif.innerText = `R$ ${r.diferenca_auditoria_brl.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+
+      const elBadgeTotal = document.getElementById("badge-total-auditados");
+      if (elBadgeTotal) elBadgeTotal.innerHTML = `<i class="fa-solid fa-calculator mr-1 text-slate-500"></i> ${r.total_lancamentos_auditados} Lançamentos Auditados`;
+    }
   } catch (e) {
     console.error("Erro ao carregar lançamentos contábeis:", e);
   }

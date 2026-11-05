@@ -241,6 +241,12 @@ async def get_lancamentos_contabeis():
     return modules_service.listar_lancamentos_contabeis()
 
 
+@app.get("/api/v1/contabil/conciliacao-resumo", tags=["3. Módulo Contábil & ERPs"])
+async def get_conciliacao_resumo(empresa_id: Optional[str] = None):
+    """Retorna a conferência cruzada e bate de saldo oficial (Extrato Bancário vs. Livro Contábil)."""
+    return modules_service.obter_resumo_conciliacao_bancaria(empresa_id)
+
+
 @app.post("/api/v1/contabil/processar-extrato", tags=["3. Módulo Contábil & ERPs"])
 async def processar_extrato_contabil(req: ProcessarExtratoRequest):
     """Processa extrato (OFX/PDF/CSV) e classifica Débito/Crédito automaticamente no Plano de Contas."""
