@@ -26,6 +26,9 @@ from app.models import (
     ImportarXMLRequest,
     ColaboradorDP,
     NovaAdmissaoRequest,
+    LoginRequest,
+    LoginResponse,
+    NovoTenantRequest,
 )
 from app.services.cnd_service import cnd_service
 from app.services.security_service import security_service
@@ -83,6 +86,48 @@ async def serve_index():
     if os.path.exists(index_path):
         return FileResponse(index_path)
     return {"message": f"{settings.APP_NAME} API Operacional. Acesse /docs"}
+
+
+# ============================================================================
+# 0. AUTENTICAÇÃO, LOGIN DO TENANT & CREDENCIAIS DE DEMONSTRAÇÃO
+# ============================================================================
+
+@app.post("/api/v1/auth/login", response_model=LoginResponse, tags=["0. Autenticação & Login"])
+async def login(req: LoginRequest):
+    """Autentica o usuário (Escritório Contábil ou Empresa Cliente) e define o contexto do Tenant (RLS)."""
+    try:
+        dados = security_service.autenticar_usuario(req.email, req.senha, req.codigo_totp)
+        rls_db.set_tenant_context(dados["tenant"]["tenant_id"])
+        return dados
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+
+
+@app.post("/api/v1/auth/cadastrar-tenant", tags=["0. Autenticação & Login"])
+async def cadastrar_tenant(req: NovoTenantRequest):
+    """Permite o onboarding de um novo Escritório Contábil (Tenant) com isolamento nativo RLS."""
+    try:
+        resultado = security_service.cadastrar_novo_tenant(req.model_dump())
+        rls_db.set_tenant_context(resultado["tenant"]["tenant_id"])
+        return resultado
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@app.get("/api/v1/auth/credenciais-demo", tags=["0. Autenticação & Login"])
+async def listar_credenciais_demo():
+    """Retorna a lista de credenciais criadas para cada escritório e para cada empresa cliente."""
+    return security_service.listar_credenciais_demo()
+
+
+@app.get("/api/v1/auth/sessao-atual", tags=["0. Autenticação & Login"])
+async def obter_sessao_atual():
+    """Retorna os dados do Tenant ativo e informações da sessão."""
+    tenant = security_service.obter_tenant_ativo()
+    return {
+        "tenant": tenant.model_dump(),
+        "total_usuarios": len(security_service.listar_usuarios_rbac()),
+    }
 
 
 # ============================================================================

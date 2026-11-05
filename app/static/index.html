@@ -35,6 +35,20 @@
 
       <!-- CONTROLES ZERO TRUST: SELETOR DE TENANT (RLS) & RBAC -->
       <div class="flex flex-wrap items-center gap-2">
+        <!-- PERFIL DO USUÁRIO LOGADO -->
+        <div class="bg-slate-800/90 border border-slate-700 rounded-lg px-2.5 py-1 flex items-center gap-2 text-xs">
+          <div class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-[10px]" id="user-avatar">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <div>
+            <div class="font-bold text-white text-[11px] leading-tight" id="user-display-nome">Profa. Helena Martins</div>
+            <div class="text-[10px] text-emerald-400 font-mono" id="user-display-role">Admin Escritório</div>
+          </div>
+          <button onclick="abrirModalLogin()" class="ml-1 px-2 py-0.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded text-[10px] font-semibold transition" title="Trocar Usuário / Acessar como outra empresa">
+            <i class="fa-solid fa-arrow-right-to-bracket mr-1"></i> Entrar / Trocar
+          </button>
+        </div>
+
         <div class="bg-slate-800/90 border border-slate-700 rounded-lg px-2.5 py-1 flex items-center gap-2 text-xs">
           <i class="fa-solid fa-database text-blue-400" title="Isolamento PostgreSQL Row-Level Security"></i>
           <span class="text-slate-400 text-[11px] hidden sm:inline">Tenant RLS:</span>
@@ -43,21 +57,6 @@
             <option value="escritorio-demo-02" class="bg-slate-900 text-white">escritorio-demo-02 (Prime Contábil - Starter)</option>
           </select>
         </div>
-
-        <div class="bg-slate-800/90 border border-slate-700 rounded-lg px-2.5 py-1 flex items-center gap-2 text-xs">
-          <i class="fa-solid fa-user-shield text-purple-400" title="Controle de Acesso Baseado em Função (RBAC)"></i>
-          <span class="text-slate-400 text-[11px] hidden sm:inline">Visão RBAC:</span>
-          <select id="select-rbac" onchange="trocarVisaoRBAC(this.value)" class="bg-transparent text-white font-medium text-xs focus:outline-none cursor-pointer">
-            <option value="ADMIN_ESCRITORIO" class="bg-slate-900 text-white">Administrador do Escritório</option>
-            <option value="ANALISTA_OPERACIONAL" class="bg-slate-900 text-white">Analista Fiscal / DP / Contábil</option>
-            <option value="CLIENTE_FINAL" class="bg-slate-900 text-white">Cliente Final (Portal Web)</option>
-          </select>
-        </div>
-
-        <span class="hidden lg:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-950 text-emerald-300 border border-emerald-800">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          Data Center SP (LGPD)
-        </span>
 
         <a href="/docs" target="_blank" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 shadow-sm">
           <i class="fa-solid fa-code"></i> API /docs
@@ -109,6 +108,27 @@
 
   <!-- CONTEÚDO PRINCIPAL -->
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- BANNER DINÂMICO QUANDO LOGADO COMO CLIENTE FINAL -->
+    <div id="portal-cliente-banner" class="hidden mb-6 bg-gradient-to-r from-slate-900 to-indigo-950 text-white p-5 rounded-2xl border border-indigo-800 shadow-lg">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-0.5 rounded-full font-mono font-bold uppercase tracking-wider">
+              <i class="fa-solid fa-lock mr-1"></i> Portal Exclusivo do Cliente
+            </span>
+            <span class="text-xs text-slate-300 font-mono" id="portal-cliente-cnpj">CNPJ: 14.238.990/0001-44</span>
+          </div>
+          <h2 class="text-lg font-bold text-white mt-1" id="portal-cliente-nome">Alpha Consultoria e Tecnologia Ltda</h2>
+          <p class="text-xs text-slate-300 mt-0.5">
+            Área de autoatendimento da sua empresa. Baixe certidões (CNDs) emitidas, pegue a guia do imposto com PIX, confira o checklist e os holerites.
+          </p>
+        </div>
+        <button onclick="abrirModalLogin()" class="bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-3.5 py-2 rounded-lg border border-white/20 transition flex items-center gap-1.5 whitespace-nowrap">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i> Trocar de Conta
+        </button>
+      </div>
+    </div>
 
     <!-- ================================================================== -->
     <!-- ABA 1: DASHBOARD, CARTEIRA & MONITOR 24/7 DE CNDs + ROBÔ PLAYWRIGHT -->
@@ -904,6 +924,178 @@ FOLHA SALARIO ADMISSAO DIGITAL 6800,00</textarea>
           <button type="submit" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">Cadastrar Cliente</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- MODAL DE LOGIN DO TENANT & EMPRESAS CLIENTES -->
+  <div id="modal-login" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-5 my-8">
+      
+      <!-- CABEÇALHO DO MODAL -->
+      <div class="flex justify-between items-start border-b border-slate-100 pb-4">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center font-bold text-slate-950 text-xl shadow-md">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+              Autenticação Zero Trust • AuditContábil AI
+            </h3>
+            <p class="text-xs text-slate-500">
+              Acesso para Escritórios Contábeis (Tenants) e Empresas Clientes (Portal Web)
+            </p>
+          </div>
+        </div>
+        <button onclick="fecharModalLogin()" class="text-slate-400 hover:text-slate-600 text-xl p-1">&times;</button>
+      </div>
+
+      <!-- ABAS: ENTRAR vs CADASTRAR NOVO ESCRITÓRIO -->
+      <div class="flex border-b border-slate-200">
+        <button onclick="switchLoginTab('acessar')" id="tab-login-acessar" class="py-2.5 px-4 font-semibold text-xs border-b-2 border-emerald-600 text-emerald-600 flex items-center gap-2">
+          <i class="fa-solid fa-arrow-right-to-bracket"></i> Acessar Conta
+        </button>
+        <button onclick="switchLoginTab('novo-tenant')" id="tab-login-novo" class="py-2.5 px-4 font-semibold text-xs border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2">
+          <i class="fa-solid fa-plus-circle"></i> Cadastrar Novo Escritório Contábil
+        </button>
+      </div>
+
+      <!-- CONTEÚDO 1: FORMULÁRIO DE LOGIN -->
+      <div id="content-login-acessar" class="space-y-4">
+        <form onsubmit="executarLogin(event)" class="space-y-3 text-xs">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">E-mail de Acesso</label>
+            <input type="email" id="login-email" required placeholder="seu-email@escritorio.com.br" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Senha</label>
+            <input type="password" id="login-senha" required placeholder="••••••••••••" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="font-semibold text-slate-700">Código MFA TOTP (Opcional no Demo)</label>
+              <span class="text-[10px] text-slate-400 font-mono">RFC 6238 (6 dígitos)</span>
+            </div>
+            <input type="text" id="login-totp" maxlength="6" placeholder="Ex: 123456" class="w-full px-3.5 py-2 border border-slate-300 rounded-xl font-mono text-center tracking-widest text-sm">
+          </div>
+
+          <button type="submit" id="btn-login-submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-sm">
+            <i class="fa-solid fa-shield-halved"></i> Entrar com Segurança ISO 27001
+          </button>
+        </form>
+
+        <!-- CREDENCIAIS PRONTAS DE DEMONSTRAÇÃO (1-CLIQUE) -->
+        <div class="pt-3 border-t border-slate-100 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+              <i class="fa-solid fa-bolt text-amber-500 mr-1"></i> Credenciais de Demonstração (Clique para Entrar Direto):
+            </span>
+          </div>
+
+          <!-- ESCRITÓRIOS -->
+          <div class="space-y-1.5">
+            <div class="text-[10px] font-bold text-slate-400 uppercase">🏢 Escritórios Contábeis (Tenants com Acesso Total):</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              <button onclick="preencherCredencial('contadora.master@escritorio.com.br', 'Vanguarda@2026')" class="text-left p-2.5 rounded-xl border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/50 transition">
+                <div class="font-bold text-slate-900">Contábil Vanguarda (Admin)</div>
+                <div class="text-[11px] font-mono text-slate-500">contadora.master@escritorio.com.br</div>
+                <div class="text-[10px] text-emerald-700 font-mono mt-0.5">Senha: Vanguarda@2026</div>
+              </button>
+
+              <button onclick="preencherCredencial('diretoria@primecontabil.com.br', 'Prime@2026')" class="text-left p-2.5 rounded-xl border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/50 transition">
+                <div class="font-bold text-slate-900">Prime Contábil (Admin Demo 02)</div>
+                <div class="text-[11px] font-mono text-slate-500">diretoria@primecontabil.com.br</div>
+                <div class="text-[10px] text-emerald-700 font-mono mt-0.5">Senha: Prime@2026</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- EMPRESAS CLIENTES -->
+          <div class="space-y-1.5 pt-1">
+            <div class="text-[10px] font-bold text-slate-400 uppercase">🏬 Empresas Clientes (Acesso Exclusivo à Própria Empresa):</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              <button onclick="preencherCredencial('contato@alphatech.com.br', 'Alpha@2026')" class="text-left p-2.5 rounded-xl border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/50 transition">
+                <div class="font-bold text-slate-900">Alpha Consultoria e TI (Cliente)</div>
+                <div class="text-[11px] font-mono text-slate-500">contato@alphatech.com.br</div>
+                <div class="text-[10px] text-indigo-700 font-mono mt-0.5">Senha: Alpha@2026</div>
+              </button>
+
+              <button onclick="preencherCredencial('financeiro@mercadoprogresso.com.br', 'Progresso@2026')" class="text-left p-2.5 rounded-xl border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/50 transition">
+                <div class="font-bold text-slate-900">Mercado Progresso (Cliente)</div>
+                <div class="text-[11px] font-mono text-slate-500">financeiro@mercadoprogresso.com.br</div>
+                <div class="text-[10px] text-indigo-700 font-mono mt-0.5">Senha: Progresso@2026</div>
+              </button>
+
+              <button onclick="preencherCredencial('adm@clinicasaolucas.med.br', 'SaoLucas@2026')" class="text-left p-2.5 rounded-xl border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/50 transition">
+                <div class="font-bold text-slate-900">Clínica Médica São Lucas (Cliente)</div>
+                <div class="text-[11px] font-mono text-slate-500">adm@clinicasaolucas.med.br</div>
+                <div class="text-[10px] text-indigo-700 font-mono mt-0.5">Senha: SaoLucas@2026</div>
+              </button>
+
+              <button onclick="preencherCredencial('contabilidade@bandeirantesexp.com.br', 'Bandeirantes@2026')" class="text-left p-2.5 rounded-xl border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/50 transition">
+                <div class="font-bold text-slate-900">Bandeirantes Express (Cliente)</div>
+                <div class="text-[11px] font-mono text-slate-500">contabilidade@bandeirantesexp.com.br</div>
+                <div class="text-[10px] text-indigo-700 font-mono mt-0.5">Senha: Bandeirantes@2026</div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONTEÚDO 2: CADASTRO DE NOVO ESCRITÓRIO (TENANT) -->
+      <div id="content-login-novo" class="hidden space-y-4">
+        <form onsubmit="cadastrarNovoEscritorioTenant(event)" class="space-y-3 text-xs">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Razão Social do Escritório Contábil</label>
+            <input type="text" id="novo-tenant-nome" required placeholder="Ex: Sigma Assessoria Contábil S/S" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">CNPJ do Escritório</label>
+              <input type="text" id="novo-tenant-cnpj" required placeholder="00.000.000/0001-00" class="w-full px-3 py-2 border border-slate-300 rounded-xl font-mono">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Registro CRC</label>
+              <input type="text" id="novo-tenant-crc" required placeholder="CRC-SP 1SP999999/O-0" class="w-full px-3 py-2 border border-slate-300 rounded-xl">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Contador Responsável</label>
+              <input type="text" id="novo-tenant-responsavel" required placeholder="Nome do Sócio/Diretor" class="w-full px-3 py-2 border border-slate-300 rounded-xl">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Plano SaaS Contratado</label>
+              <select id="novo-tenant-plano" class="w-full px-3 py-2 border border-slate-300 rounded-xl">
+                <option value="Starter">Starter (Até 30 CNPJs - R$ 197/mês)</option>
+                <option value="Pro" selected>Pro (Até 100 CNPJs - R$ 497/mês)</option>
+                <option value="Scale">Scale (Até 250 CNPJs - R$ 897/mês)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">E-mail do Administrador</label>
+              <input type="email" id="novo-tenant-email" required placeholder="diretoria@escritorio.com.br" class="w-full px-3 py-2 border border-slate-300 rounded-xl">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Senha de Acesso</label>
+              <input type="password" id="novo-tenant-senha" required placeholder="Mínimo 12 caracteres" class="w-full px-3 py-2 border border-slate-300 rounded-xl">
+            </div>
+          </div>
+
+          <div class="pt-2">
+            <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-sm">
+              <i class="fa-solid fa-building-circle-check text-emerald-400"></i> Criar Escritório Isolado (PostgreSQL RLS)
+            </button>
+          </div>
+        </form>
+      </div>
+
     </div>
   </div>
 

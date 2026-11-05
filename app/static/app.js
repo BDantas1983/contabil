@@ -1,8 +1,19 @@
 // app.js - AuditContábil AI (Implementação Completa do Playbook)
 
 let ultimoArquivoERP = { nome: "LOTE_CONTABIL.txt", conteudo: "" };
+let sessaoUsuario = JSON.parse(localStorage.getItem("auditcontabil_sessao") || "null") || {
+  id: "usr-admin-01",
+  nome: "Profa. Dra. Helena Martins",
+  email: "contadora.master@escritorio.com.br",
+  role: "ADMIN_ESCRITORIO",
+  role_label: "Administrador do Escritório",
+  tenant_id: "escritorio-piloto-01",
+  empresa_vinculada_id: null,
+  empresa_vinculada_nome: null
+};
 
 document.addEventListener("DOMContentLoaded", () => {
+  aplicarPerfilVisualUsuario();
   carregarTudo();
   // Atualiza o relógio do TOTP RFC 6238 a cada 3 segundos quando estiver na aba de segurança
   setInterval(() => {
@@ -12,6 +23,175 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }, 3000);
 });
+
+// ============================================================================
+// CONTROLE DE SESSÃO & MODAL DE LOGIN
+// ============================================================================
+function abrirModalLogin() {
+  document.getElementById("modal-login").classList.remove("hidden");
+  document.getElementById("modal-login").classList.add("flex");
+}
+
+function fecharModalLogin() {
+  document.getElementById("modal-login").classList.add("hidden");
+  document.getElementById("modal-login").classList.remove("flex");
+}
+
+function switchLoginTab(tab) {
+  const contentAcessar = document.getElementById("content-login-acessar");
+  const contentNovo = document.getElementById("content-login-novo");
+  const tabAcessar = document.getElementById("tab-login-acessar");
+  const tabNovo = document.getElementById("tab-login-novo");
+
+  if (tab === "acessar") {
+    contentAcessar.classList.remove("hidden");
+    contentNovo.classList.add("hidden");
+    tabAcessar.classList.add("border-emerald-600", "text-emerald-600");
+    tabAcessar.classList.remove("border-transparent", "text-slate-500");
+    tabNovo.classList.remove("border-emerald-600", "text-emerald-600");
+    tabNovo.classList.add("border-transparent", "text-slate-500");
+  } else {
+    contentAcessar.classList.add("hidden");
+    contentNovo.classList.remove("hidden");
+    tabNovo.classList.add("border-emerald-600", "text-emerald-600");
+    tabNovo.classList.remove("border-transparent", "text-slate-500");
+    tabAcessar.classList.remove("border-emerald-600", "text-emerald-600");
+    tabAcessar.classList.add("border-transparent", "text-slate-500");
+  }
+}
+
+function preencherCredencial(email, senha) {
+  document.getElementById("login-email").value = email;
+  document.getElementById("login-senha").value = senha;
+  executarLogin();
+}
+
+async function executarLogin(e) {
+  if (e) e.preventDefault();
+  const email = document.getElementById("login-email").value.trim();
+  const senha = document.getElementById("login-senha").value.trim();
+  const totp = document.getElementById("login-totp").value.trim();
+
+  if (!email || !senha) {
+    alert("Informe o e-mail e a senha.");
+    return;
+  }
+
+  const btn = document.getElementById("btn-login-submit");
+  btn.disabled = true;
+  btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Autenticando...`;
+
+  try {
+    const res = await fetch("/api/v1/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, senha, codigo_totp: totp || null })
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      sessaoUsuario = data.usuario;
+      localStorage.setItem("auditcontabil_sessao", JSON.stringify(sessaoUsuario));
+
+      // Atualiza o seletor de tenant na topbar se necessário
+      const selectTenant = document.getElementById("select-tenant");
+      if (selectTenant && data.tenant) {
+        selectTenant.value = data.tenant.tenant_id;
+      }
+
+      fecharModalLogin();
+      aplicarPerfilVisualUsuario();
+      await carregarTudo();
+    } else {
+      const err = await res.json();
+      alert(`Falha no login: ${err.detail || "Credenciais inválidas"}`);
+    }
+  } catch (err) {
+    alert("Erro na conexão com o servidor de autenticação.");
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<i class="fa-solid fa-shield-halved"></i> Entrar com Segurança ISO 27001`;
+  }
+}
+
+async function cadastrarNovoEscritorioTenant(e) {
+  e.preventDefault();
+  const payload = {
+    nome_escritorio: document.getElementById("novo-tenant-nome").value,
+    cnpj_escritorio: document.getElementById("novo-tenant-cnpj").value,
+    crc_registro: document.getElementById("novo-tenant-crc").value,
+    responsavel_tecnico: document.getElementById("novo-tenant-responsavel").value,
+    plano_saas: document.getElementById("novo-tenant-plano").value,
+    email_admin: document.getElementById("novo-tenant-email").value,
+    senha_admin: document.getElementById("novo-tenant-senha").value
+  };
+
+  try {
+    const res = await fetch("/api/v1/auth/cadastrar-tenant", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      alert(`Sucesso! ${data.mensagem}\nIniciando sessão como Administrador do novo escritório.`);
+      sessaoUsuario = data.usuario_admin;
+      localStorage.setItem("auditcontabil_sessao", JSON.stringify(sessaoUsuario));
+
+      // Adiciona o novo tenant ao seletor se não existir
+      const selectTenant = document.getElementById("select-tenant");
+      const opt = document.createElement("option");
+      opt.value = data.tenant.tenant_id;
+      opt.className = "bg-slate-900 text-white";
+      opt.innerText = `${data.tenant.tenant_id} (${data.tenant.nome_escritorio})`;
+      selectTenant.appendChild(opt);
+      selectTenant.value = data.tenant.tenant_id;
+
+      fecharModalLogin();
+      aplicarPerfilVisualUsuario();
+      await carregarTudo();
+    } else {
+      const err = await res.json();
+      alert(`Erro: ${err.detail || "Não foi possível cadastrar o escritório."}`);
+    }
+  } catch (err) {
+    alert("Erro na comunicação com o servidor.");
+  }
+}
+
+function aplicarPerfilVisualUsuario() {
+  if (!sessaoUsuario) return;
+
+  const nomeEl = document.getElementById("user-display-nome");
+  const roleEl = document.getElementById("user-display-role");
+  const avatarEl = document.getElementById("user-avatar");
+  const bannerCliente = document.getElementById("portal-cliente-banner");
+  const tabSecurity = document.getElementById("tab-security");
+  const tabNegocio = document.getElementById("tab-negocio");
+
+  if (nomeEl) nomeEl.innerText = sessaoUsuario.nome;
+  if (roleEl) roleEl.innerText = sessaoUsuario.role_label || sessaoUsuario.role;
+
+  if (sessaoUsuario.role === "CLIENTE_FINAL") {
+    if (avatarEl) avatarEl.innerHTML = `<i class="fa-solid fa-building text-indigo-400"></i>`;
+    if (bannerCliente) {
+      bannerCliente.classList.remove("hidden");
+      document.getElementById("portal-cliente-nome").innerText = sessaoUsuario.empresa_vinculada_nome || sessaoUsuario.nome;
+      document.getElementById("portal-cliente-cnpj").innerText = `Perfil: Cliente Final • Empresa: ${sessaoUsuario.empresa_vinculada_id || "Vínculo Ativo"}`;
+    }
+    // Esconde abas de infraestrutura interna do escritório contábil
+    if (tabSecurity) tabSecurity.classList.add("hidden");
+    if (tabNegocio) tabNegocio.classList.add("hidden");
+    trocarVisaoRBAC("CLIENTE_FINAL");
+  } else {
+    if (avatarEl) avatarEl.innerHTML = `<i class="fa-solid fa-user-tie text-emerald-400"></i>`;
+    if (bannerCliente) bannerCliente.classList.add("hidden");
+    if (tabSecurity) tabSecurity.classList.remove("hidden");
+    if (tabNegocio) tabNegocio.classList.remove("hidden");
+    trocarVisaoRBAC(sessaoUsuario.role || "ADMIN_ESCRITORIO");
+  }
+}
 
 async function carregarTudo() {
   await Promise.all([
@@ -104,11 +284,15 @@ async function carregarDados() {
 }
 
 function renderizarTabelaEmpresas(empresas) {
+  if (sessaoUsuario && sessaoUsuario.role === "CLIENTE_FINAL" && sessaoUsuario.empresa_vinculada_id) {
+    empresas = empresas.filter(e => e.id === sessaoUsuario.empresa_vinculada_id);
+  }
+
   const tbody = document.getElementById("lista-empresas");
   tbody.innerHTML = "";
 
   if (!empresas.length) {
-    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-400">Nenhuma empresa neste tenant.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-400">Nenhuma empresa associada a esta conta.</td></tr>`;
     return;
   }
 
@@ -250,7 +434,10 @@ async function carregarChecklistColeta() {
   try {
     const res = await fetch("/api/v1/coleta/checklist");
     if (!res.ok) return;
-    const itens = await res.json();
+    let itens = await res.json();
+    if (sessaoUsuario && sessaoUsuario.role === "CLIENTE_FINAL" && sessaoUsuario.empresa_vinculada_id) {
+      itens = itens.filter(it => it.empresa_id === sessaoUsuario.empresa_vinculada_id);
+    }
     const tbody = document.getElementById("lista-checklist");
     tbody.innerHTML = "";
 
@@ -319,7 +506,10 @@ async function carregarLancamentosContabeis() {
   try {
     const res = await fetch("/api/v1/contabil/lancamentos");
     if (!res.ok) return;
-    const lista = await res.json();
+    let lista = await res.json();
+    if (sessaoUsuario && sessaoUsuario.role === "CLIENTE_FINAL" && sessaoUsuario.empresa_vinculada_id) {
+      lista = lista.filter(l => l.empresa_id === sessaoUsuario.empresa_vinculada_id);
+    }
     const tbody = document.getElementById("lista-lancamentos");
     tbody.innerHTML = "";
 
@@ -403,7 +593,10 @@ async function carregarModuloFiscal() {
     ]);
 
     if (resGuias.ok) {
-      const guias = await resGuias.json();
+      let guias = await resGuias.json();
+      if (sessaoUsuario && sessaoUsuario.role === "CLIENTE_FINAL" && sessaoUsuario.empresa_vinculada_id) {
+        guias = guias.filter(g => g.empresa_id === sessaoUsuario.empresa_vinculada_id);
+      }
       const tbodyG = document.getElementById("lista-guias");
       tbodyG.innerHTML = "";
       guias.forEach(g => {
@@ -430,7 +623,10 @@ async function carregarModuloFiscal() {
     }
 
     if (resXmls.ok) {
-      const xmls = await resXmls.json();
+      let xmls = await resXmls.json();
+      if (sessaoUsuario && sessaoUsuario.role === "CLIENTE_FINAL" && sessaoUsuario.empresa_vinculada_id) {
+        xmls = xmls.filter(x => x.empresa_id === sessaoUsuario.empresa_vinculada_id);
+      }
       const tbodyX = document.getElementById("lista-xmls");
       tbodyX.innerHTML = "";
       xmls.forEach(x => {
@@ -474,7 +670,10 @@ async function carregarModuloDP() {
   try {
     const res = await fetch("/api/v1/dp/colaboradores");
     if (!res.ok) return;
-    const lista = await res.json();
+    let lista = await res.json();
+    if (sessaoUsuario && sessaoUsuario.role === "CLIENTE_FINAL" && sessaoUsuario.empresa_vinculada_id) {
+      lista = lista.filter(c => c.empresa_id === sessaoUsuario.empresa_vinculada_id);
+    }
     const tbody = document.getElementById("lista-dp");
     tbody.innerHTML = "";
 

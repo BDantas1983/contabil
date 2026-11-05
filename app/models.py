@@ -19,10 +19,12 @@ class UsuarioIAM(BaseModel):
     id: str
     nome: str
     email: str
+    senha_demo: Optional[str] = None
     role: str  # "ADMIN_ESCRITORIO", "ANALISTA_OPERACIONAL", "CLIENTE_FINAL"
     role_label: str
     tenant_id: str
     empresa_vinculada_id: Optional[str] = None
+    empresa_vinculada_nome: Optional[str] = None
     mfa_habilitado: bool = True
     permissoes: List[str]
 
@@ -31,7 +33,23 @@ class LoginRequest(BaseModel):
     email: str
     senha: str
     codigo_totp: Optional[str] = None
-    tenant_id: str = "escritorio-piloto-01"
+    tenant_id: Optional[str] = None
+
+
+class LoginResponse(BaseModel):
+    token_jwt: str
+    usuario: UsuarioIAM
+    tenant: TenantInfo
+
+
+class NovoTenantRequest(BaseModel):
+    nome_escritorio: str
+    cnpj_escritorio: str
+    plano_saas: str = "Pro"
+    responsavel_tecnico: str
+    crc_registro: str
+    email_admin: str
+    senha_admin: str
 
 
 class ValidacaoSenhaRequest(BaseModel):

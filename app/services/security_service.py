@@ -356,6 +356,125 @@ class SecurityService:
     def listar_usuarios_rbac(self) -> List[UsuarioIAM]:
         return [u for u in self._usuarios if u.tenant_id == self._tenant_ativo]
 
+    def listar_credenciais_demo(self) -> List[Dict[str, Any]]:
+        """Retorna a lista de credenciais de demonstração para facilitar o login e testes."""
+        return [
+            {
+                "id": u.id,
+                "nome": u.nome,
+                "email": u.email,
+                "senha": u.senha_demo,
+                "role": u.role,
+                "role_label": u.role_label,
+                "tenant_id": u.tenant_id,
+                "tenant_nome": self._tenants.get(u.tenant_id, {}).nome_escritorio if u.tenant_id in self._tenants else u.tenant_id,
+                "empresa_vinculada_id": u.empresa_vinculada_id,
+                "empresa_vinculada_nome": u.empresa_vinculada_nome,
+            }
+            for u in self._usuarios
+        ]
+
+    def autenticar_usuario(self, email: str, senha: str, codigo_totp: Optional[str] = None) -> Dict[str, Any]:
+        """Autentica o operador ou cliente final por e-mail e senha, retornando dados e contexto de tenant."""
+        usuario = next((u for u in self._usuarios if u.email.strip().lower() == email.strip().lower()), None)
+        if not usuario:
+            raise ValueError("Usuário não encontrado com o e-mail informado.")
+
+        if usuario.senha_demo and usuario.senha_demo != senha:
+            self.registrar_evento_auditoria(
+                usuario=email,
+                acao="FALHA_AUTENTICACAO_SENHA_INCORRETA",
+                recurso="Tela de Login Multi-Tenant",
+                resultado="FALHA",
+                tenant_id=usuario.tenant_id,
+            )
+            raise ValueError("Senha incorreta. Verifique suas credenciais.")
+
+        # Alterna automaticamente para o tenant do usuário logado
+        self.alternar_tenant(usuario.tenant_id)
+
+        token_jwt = f"jwt.simulado.{usuario.id}.{int(time.time())}.{secrets.token_hex(8)}"
+        tenant_info = self.obter_tenant_ativo()
+
+        self.registrar_evento_auditoria(
+            usuario=usuario.email,
+            acao="LOGIN_SUCESSO_SESSAO_INICIADA",
+            recurso=f"Role: {usuario.role} | Tenant: {usuario.tenant_id}",
+            resultado="SUCESSO",
+            tenant_id=usuario.tenant_id,
+        )
+
+        return {
+            "token_jwt": token_jwt,
+            "usuario": usuario.model_dump(),
+            "tenant": tenant_info.model_dump(),
+        }
+
+    def cadastrar_novo_tenant(self, dados: Dict[str, Any]) -> Dict[str, Any]:
+        """Cadastra um novo Escritório Contábil (Tenant) e seu usuário Administrador."""
+        t_id = f"escritorio-{secrets.token_hex(3)}"
+        novo_tenant = TenantInfo(
+            tenant_id=t_id,
+            nome_escritorio=dados["nome_escritorio"],
+            cnpj_escritorio=dados["cnpj_escritorio"],
+            plano_saas=dados.get("plano_saas", "Pro"),
+            limite_cnpjs=100 if dados.get("plano_saas") == "Pro" else 30,
+            responsavel_tecnico=dados.get("responsavel_tecnico", "Contador Responsável"),
+            crc_registro=dados.get("crc_registro", "CRC-SP"),
+            isolamento_rls_ativo=True,
+        )
+        self._tenants[t_id] = novo_tenant
+
+        usr_id = f"usr-{secrets.token_hex(3)}"
+        admin_usr = UsuarioIAM(
+            id=usr_id,
+            nome=f"{dados['responsavel_tecnico']} (Administrador)",
+            email=dados["email_admin"],
+            senha_demo=dados["senha_admin"],
+            role="ADMIN_ESCRITORIO",
+            role_label="Administrador do Escritório",
+            tenant_id=t_id,
+            mfa_habilitado=True,
+            permissoes=[
+                "gestao_equipe_rbac",
+                "cofre_certificados_a1",
+                "monitor_cnds_total",
+                "conciliacao_ia_erp",
+                "apuracao_fiscal_guias",
+                "dp_esocial_holerites",
+                "auditoria_siem_worm",
+            ],
+        )
+        self._usuarios.append(admin_usr)
+
+        # Criptografa certificado A1 simulado para o novo escritório
+        self.criptografar_certificado_a1(
+            NovoCertificadoA1Request(
+                titular_razao_social=f"{dados['nome_escritorio']} (Procuração RFB)",
+                cnpj_titular=dados["cnpj_escritorio"],
+                senha_pfx="Cert@NovoEscritorio2026",
+                tipo="ECNPJ_ESCRITORIO_PROCURACAO",
+                emissor_icp_brasil="AC Serasa RFB v5",
+                validade="05/11/2027",
+            ),
+            tenant_id=t_id,
+        )
+
+        self.alternar_tenant(t_id)
+
+        self.registrar_evento_auditoria(
+            usuario=dados["email_admin"],
+            acao="ONBOARDING_NOVO_TENANT_ESCRITORIO",
+            recurso=f"Novo Escritório '{dados['nome_escritorio']}' ({dados['cnpj_escritorio']})",
+            tenant_id=t_id,
+        )
+
+        return {
+            "tenant": novo_tenant.model_dump(),
+            "usuario_admin": admin_usr.model_dump(),
+            "mensagem": f"Escritório '{dados['nome_escritorio']}' cadastrado com sucesso com isolamento RLS!",
+        }
+
     def simular_teste_isolamento_rls(self, tenant_alvo: str = "escritorio-demo-02") -> Dict[str, Any]:
         """
         Simula uma tentativa de acesso cruzado entre escritórios (Cross-Tenant Query / SQLi)
@@ -505,10 +624,12 @@ class SecurityService:
         }
 
         self._usuarios = [
+            # 1. Escritório Piloto (Vanguarda) - Administrador e Analista
             UsuarioIAM(
                 id="usr-admin-01",
-                nome="Profa. Helena Martins (Sócia-Diretora)",
+                nome="Profa. Dra. Helena Martins (Sócia-Diretora)",
                 email="contadora.master@escritorio.com.br",
+                senha_demo="Vanguarda@2026",
                 role="ADMIN_ESCRITORIO",
                 role_label="Administrador do Escritório",
                 tenant_id="escritorio-piloto-01",
@@ -527,6 +648,7 @@ class SecurityService:
                 id="usr-analista-02",
                 nome="Lucas Andrade (Analista Fiscal & Contábil)",
                 email="analista.fiscal@escritorio.com.br",
+                senha_demo="Analista@2026",
                 role="ANALISTA_OPERACIONAL",
                 role_label="Analista Fiscal / DP / Contábil",
                 tenant_id="escritorio-piloto-01",
@@ -538,14 +660,17 @@ class SecurityService:
                     "coleta_whatsapp_checklist",
                 ],
             ),
+            # 2. Empresas da Carteira do Escritório Piloto (Clientes Finais)
             UsuarioIAM(
-                id="usr-cliente-03",
-                nome="Roberto Almeida (Sócio - Alpha Tech Ltda)",
+                id="usr-cli-01",
+                nome="Roberto Almeida (Sócio - Alpha Tech)",
                 email="contato@alphatech.com.br",
+                senha_demo="Alpha@2026",
                 role="CLIENTE_FINAL",
                 role_label="Cliente Final (Portal Web)",
                 tenant_id="escritorio-piloto-01",
                 empresa_vinculada_id="emp-01",
+                empresa_vinculada_nome="Alpha Consultoria e Tecnologia Ltda",
                 mfa_habilitado=True,
                 permissoes=[
                     "visualizar_propria_empresa",
@@ -555,14 +680,83 @@ class SecurityService:
                 ],
             ),
             UsuarioIAM(
+                id="usr-cli-02",
+                nome="Juliana Prado (Financeiro - Mercado Progresso)",
+                email="financeiro@mercadoprogresso.com.br",
+                senha_demo="Progresso@2026",
+                role="CLIENTE_FINAL",
+                role_label="Cliente Final (Portal Web)",
+                tenant_id="escritorio-piloto-01",
+                empresa_vinculada_id="emp-02",
+                empresa_vinculada_nome="Supermercado Progresso da Vila Ltda",
+                mfa_habilitado=True,
+                permissoes=[
+                    "visualizar_propria_empresa",
+                    "enviar_documentos_checklist",
+                    "baixar_guias_das_darf",
+                    "baixar_cnds_e_holerites",
+                ],
+            ),
+            UsuarioIAM(
+                id="usr-cli-03",
+                nome="Dr. Marcos Vinícius (Diretor - Clínica São Lucas)",
+                email="adm@clinicasaolucas.med.br",
+                senha_demo="SaoLucas@2026",
+                role="CLIENTE_FINAL",
+                role_label="Cliente Final (Portal Web)",
+                tenant_id="escritorio-piloto-01",
+                empresa_vinculada_id="emp-03",
+                empresa_vinculada_nome="Clínica Médica e Diagnósticos São Lucas S/S",
+                mfa_habilitado=True,
+                permissoes=[
+                    "visualizar_propria_empresa",
+                    "enviar_documentos_checklist",
+                    "baixar_guias_das_darf",
+                    "baixar_cnds_e_holerites",
+                ],
+            ),
+            UsuarioIAM(
+                id="usr-cli-04",
+                nome="Sérgio Ramos (Contabilidade - Bandeirantes Express)",
+                email="contabilidade@bandeirantesexp.com.br",
+                senha_demo="Bandeirantes@2026",
+                role="CLIENTE_FINAL",
+                role_label="Cliente Final (Portal Web)",
+                tenant_id="escritorio-piloto-01",
+                empresa_vinculada_id="emp-04",
+                empresa_vinculada_nome="Logística e Distribuição Bandeirantes Ltda",
+                mfa_habilitado=True,
+                permissoes=[
+                    "visualizar_propria_empresa",
+                    "enviar_documentos_checklist",
+                    "baixar_guias_das_darf",
+                    "baixar_cnds_e_holerites",
+                ],
+            ),
+            # 3. Segundo Escritório (Tenant 02 - Prime Contábil)
+            UsuarioIAM(
                 id="usr-admin-t2",
                 nome="Carlos Eduardo Nogueira (Diretor Prime)",
                 email="diretoria@primecontabil.com.br",
+                senha_demo="Prime@2026",
                 role="ADMIN_ESCRITORIO",
                 role_label="Administrador do Escritório",
                 tenant_id="escritorio-demo-02",
                 mfa_habilitado=True,
                 permissoes=["acesso_total_tenant_02"],
+            ),
+            UsuarioIAM(
+                id="usr-cli-t2-01",
+                nome="Renato Silveira (Fiscal - Metalúrgica Paulista)",
+                email="fiscal@metalpaulista.com.br",
+                senha_demo="Metal@2026",
+                role="CLIENTE_FINAL",
+                role_label="Cliente Final (Portal Web)",
+                tenant_id="escritorio-demo-02",
+                empresa_vinculada_id="emp-t2-01",
+                empresa_vinculada_nome="Indústria Metalúrgica Paulista S/A",
+                mfa_habilitado=True,
+                permissoes=["visualizar_propria_empresa"],
             ),
         ]
 
