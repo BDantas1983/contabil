@@ -307,6 +307,33 @@ async def baixar_pdf_guia(guia_id: str):
     )
 
 
+@app.post("/api/v1/fiscal/recalcular-guia/{guia_id}", tags=["4. Módulo Fiscal & Guias"])
+async def recalcular_guia_fiscal(guia_id: str):
+    """Recalcula guia tributária vencida (DAS/FGTS/DARF) aplicando multa diária de 0,33% e taxa SELIC."""
+    try:
+        return modules_service.recalcular_guia(guia_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.post("/api/v1/fiscal/disparar-whatsapp/{guia_id}", tags=["4. Módulo Fiscal & Guias"])
+async def disparar_guia_cliente_whatsapp(guia_id: str):
+    """Envia lembrete de vencimento ou 2ª via recalculada da guia via WhatsApp ao empresário."""
+    try:
+        return modules_service.disparar_guia_whatsapp(guia_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.post("/api/v1/coleta/autoatendimento-cnd", tags=["2. Módulo Coleta & WhatsApp"])
+async def autoatendimento_cnd_whatsapp(empresa_id: str, solicitacao: str = "CND_TODAS"):
+    """Simula o atendimento autônomo do Bot de WhatsApp enviando CNDs em PDF sob demanda para o cliente."""
+    try:
+        return modules_service.autoatendimento_cnd_whatsapp(empresa_id, solicitacao)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
 # ============================================================================
 # 5. MÓDULO 5: DP & RH (ADMISSÃO DIGITAL eSOCIAL S-2200 & HOLERITES LGPD)
 # ============================================================================

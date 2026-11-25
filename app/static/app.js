@@ -729,21 +729,40 @@ async function carregarModuloFiscal() {
       tbodyG.innerHTML = "";
       guias.forEach(g => {
         const tr = document.createElement("tr");
-        tr.className = "hover:bg-slate-50";
+        tr.className = "hover:bg-slate-50 transition-colors";
+        const isRecalculada = g.recalculada;
         tr.innerHTML = `
           <td class="py-2.5 px-3">
             <div class="font-bold text-slate-900">${g.tributo}</div>
             <div class="text-[11px] text-slate-500">${g.empresa_nome} (${g.cnpj})</div>
           </td>
-          <td class="py-2.5 px-3 font-mono text-slate-700">${g.vencimento}<div class="text-[10px] text-slate-400">Comp: ${g.competencia}</div></td>
-          <td class="py-2.5 px-3 font-mono font-bold text-slate-900">R$ ${g.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</td>
-          <td class="py-2.5 px-3">
-            <span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full text-[11px] font-semibold">${g.status_envio}</span>
+          <td class="py-2.5 px-3 font-mono text-slate-700 whitespace-nowrap">
+            ${g.vencimento}
+            <div class="text-[10px] text-slate-400">Comp: ${g.competencia}</div>
           </td>
-          <td class="py-2.5 px-3 text-center">
+          <td class="py-2.5 px-3 font-mono font-bold text-slate-900 whitespace-nowrap">
+            R$ ${g.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+            ${isRecalculada ? `<div class="text-[10px] text-amber-700 font-sans font-normal">(+R$ ${g.multa_juros.toFixed(2)} juros/multa)</div>` : ''}
+          </td>
+          <td class="py-2.5 px-3 whitespace-nowrap">
+            <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold ${isRecalculada ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-emerald-100 text-emerald-800'}">
+              ${isRecalculada ? 'RECALCULADA_COM_ENCARGOS' : g.status_envio}
+            </span>
+          </td>
+          <td class="py-2.5 px-3 text-center whitespace-nowrap">
             <a href="/api/v1/fiscal/guias/pdf/${g.id}" target="_blank" class="inline-flex items-center gap-1 bg-slate-900 hover:bg-slate-800 text-white px-2.5 py-1 rounded-md text-[11px] font-semibold">
-              <i class="fa-solid fa-file-pdf text-amber-400"></i> Guia PDF
+              <i class="fa-solid fa-file-pdf text-amber-400"></i> PDF
             </a>
+          </td>
+          <td class="py-2.5 px-3 text-center whitespace-nowrap">
+            <div class="flex items-center justify-center gap-1.5">
+              <button onclick="recalcularGuia('${g.id}')" title="Aplica multa diária de 0.33% e SELIC para emissão de 2ª via" class="inline-flex items-center gap-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 px-2 py-1 rounded text-[11px] font-semibold transition">
+                <i class="fa-solid fa-arrows-rotate text-amber-600"></i> Recalcular
+              </button>
+              <button onclick="dispararGuiaWhatsApp('${g.id}')" title="Disparar aviso / 2ª via no WhatsApp do empresário" class="inline-flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-1 rounded text-[11px] font-semibold transition">
+                <i class="fa-brands fa-whatsapp text-emerald-600"></i> WhatsApp
+              </button>
+            </div>
           </td>
         `;
         tbodyG.appendChild(tr);
@@ -773,6 +792,61 @@ async function carregarModuloFiscal() {
   } catch (e) {
     console.error("Erro ao carregar módulo fiscal:", e);
   }
+}
+
+async function recalcularGuia(guiaId) {
+  try {
+    const res = await fetch(`/api/v1/fiscal/recalcular-guia/${guiaId}`, { method: "POST" });
+    if (!res.ok) {
+      alert("Erro ao recalcular guia.");
+      return;
+    }
+    const data = await res.json();
+    alert(`✅ ${data.mensagem}\n\nNovo Vencimento: ${data.guia.vencimento}\nNovo Valor: R$ ${data.guia.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}\nCódigo de Barras atualizado para liquidação bancária.`);
+    await carregarModuloFiscal();
+  } catch (e) {
+    console.error("Erro ao recalcular guia:", e);
+  }
+}
+
+async function dispararGuiaWhatsApp(guiaId) {
+  try {
+    const res = await fetch(`/api/v1/fiscal/disparar-whatsapp/${guiaId}`, { method: "POST" });
+    if (!res.ok) {
+      alert("Erro ao disparar guia no WhatsApp.");
+      return;
+    }
+    const data = await res.json();
+    alert(`📲 Notificação enviada com sucesso para o WhatsApp ${data.destinatario}!\n\n${data.mensagem}`);
+    await carregarModuloFiscal();
+  } catch (e) {
+    console.error("Erro ao enviar guia no WhatsApp:", e);
+  }
+}
+
+async function simularAutoatendimentoCND() {
+  const empresaId = document.getElementById("coleta-empresa").value;
+  try {
+    const res = await fetch(`/api/v1/coleta/autoatendimento-cnd?empresa_id=${encodeURIComponent(empresaId)}`, {
+      method: "POST"
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+
+    const box = document.getElementById("coleta-resposta-bot");
+    box.classList.remove("hidden");
+    box.innerHTML = `
+      <div class="flex items-center justify-between pb-2 border-b border-emerald-800 mb-2">
+        <span class="font-bold text-white flex items-center gap-1.5"><i class="fa-brands fa-whatsapp text-emerald-400"></i> Autoatendimento WhatsApp 24/7 Ativo</span>
+        <span class="text-[10px] text-emerald-400 font-mono">${data.destinatario}</span>
+      </div>
+      <div class="whitespace-pre-wrap text-emerald-200 text-xs">${data.mensagem_bot}</div>
+    `;
+    await carregarChecklistColeta();
+  } catch (e) {
+    console.error("Erro no autoatendimento CND:", e);
+  }
+}
 }
 
 async function importarXMLFiscal() {

@@ -72,6 +72,16 @@ class LocalRLSDatabase:
             ).fetchall()
         return [json.loads(r["payload_json"]) for r in rows]
 
+    def get(self, collection: str, record_id: str, tenant_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
+        """Busca um registro específico aplicando o isolamento RLS do tenant."""
+        active_tenant = tenant_id or self.current_tenant_id
+        with self._get_conn() as conn:
+            row = conn.execute(
+                "SELECT payload_json FROM kv_rls_store WHERE collection = ? AND record_id = ? AND tenant_id = ?",
+                (collection, record_id, active_tenant),
+            ).fetchone()
+        return json.loads(row["payload_json"]) if row else None
+
     def count_collection(self, collection: str) -> int:
         with self._get_conn() as conn:
             row = conn.execute(

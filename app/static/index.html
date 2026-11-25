@@ -70,7 +70,7 @@
         <div class="flex items-center gap-2">
           <span class="font-mono text-emerald-400" id="banner-rls-cmd">SET LOCAL app.current_tenant_id = 'escritorio-piloto-01';</span>
           <span class="text-slate-600">|</span>
-          <span id="banner-escritorio-nome" class="font-medium text-white">Contábil Vanguarda & Associados (Escritório Piloto da Professora)</span>
+          <span id="banner-escritorio-nome" class="font-medium text-white">Contábil Vanguarda & Associados (Escritório Modelo)</span>
         </div>
         <div id="banner-rbac-permissoes" class="text-slate-400">
           <i class="fa-solid fa-check-double text-emerald-400 mr-1"></i> RBAC: Acesso Total (Cofre A1, CNDs, Conciliação IA, Fiscal, DP e SIEM WORM)
@@ -343,6 +343,20 @@
               <button onclick="simularWebhookWhatsApp()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2.5 rounded-lg transition flex items-center justify-center gap-2">
                 <i class="fa-solid fa-paper-plane"></i> Simular Recebimento no Bot
               </button>
+
+              <!-- AUTOATENDIMENTO 24/7 WHATSAPP: EMISSÃO AUTÔNOMA DE CNDs -->
+              <div class="pt-3 border-t border-slate-200 space-y-2">
+                <div class="flex items-center gap-1.5 text-slate-800 font-bold">
+                  <i class="fa-brands fa-whatsapp text-emerald-600 text-sm"></i>
+                  <span>Autoatendimento 24/7: Pedir CNDs via WhatsApp</span>
+                </div>
+                <p class="text-[11px] text-slate-500">
+                  O empresário pede certidões pelo WhatsApp e o robô responde em segundos com o status e PDFs oficiais.
+                </p>
+                <button onclick="simularAutoatendimentoCND()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 rounded-lg transition flex items-center justify-center gap-1.5 text-xs shadow-sm">
+                  <i class="fa-solid fa-robot"></i> Simular Pedido de CND no WhatsApp
+                </button>
+              </div>
             </div>
 
             <div id="coleta-resposta-bot" class="hidden p-3 rounded-lg bg-emerald-950 text-emerald-200 text-[11px] font-mono border border-emerald-800"></div>
@@ -679,6 +693,7 @@ FOLHA SALARIO ADMISSAO DIGITAL 6800,00</textarea>
                       <th class="py-2.5 px-3">Valor Apurado</th>
                       <th class="py-2.5 px-3">Status Envio</th>
                       <th class="py-2.5 px-3 text-center">PDF Oficial</th>
+                      <th class="py-2.5 px-3 text-center">Ações (Recálculo & WhatsApp)</th>
                     </tr>
                   </thead>
                   <tbody id="lista-guias" class="divide-y divide-slate-200"></tbody>

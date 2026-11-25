@@ -603,11 +603,11 @@ class SecurityService:
         self._tenants = {
             "escritorio-piloto-01": TenantInfo(
                 tenant_id="escritorio-piloto-01",
-                nome_escritorio="Contábil Vanguarda & Associados (Escritório Piloto da Professora)",
+                nome_escritorio="Contábil Vanguarda & Associados (Escritório Modelo)",
                 cnpj_escritorio="11.444.777/0001-91",
                 plano_saas="Pro (Até 100 CNPJs - R$ 497/mês)",
                 limite_cnpjs=100,
-                responsavel_tecnico="Profa. Dra. Helena Martins",
+                responsavel_tecnico="Dra. Helena Martins (Contadora Responsável)",
                 crc_registro="CRC-SP 1SP289401/O-8",
                 isolamento_rls_ativo=True,
             ),

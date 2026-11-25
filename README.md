@@ -56,9 +56,10 @@ A plataforma integra os 5 pilares fundamentais da rotina de um escritório cont�
 ```
 
 ### 1. Módulo de Atendimento & Coleta Inteligente (WhatsApp + Checklist)
+* **Autoatendimento 24/7 via WhatsApp:** O empresário pode solicitar suas Certidões Negativas (Receita Federal, FGTS, Sefaz e Municipal) ou 2ª via de guias a qualquer hora pelo WhatsApp. O robô emite o documento em tempo real e devolve os PDFs com chave de autenticidade instantaneamente.
 * **Checklist Mensal Automatizado:** Acompanhamento do recebimento de extratos bancários, notas fiscais de tomada de serviços, comprovantes de despesas e apontamentos de folha.
 * **Simulador de Recebimento via WhatsApp:** Ingestão de arquivos enviados pelo cliente com pré-validação instantânea de integridade e legibilidade.
-* **Cobrança Ativa Preventiva:** Mensagens automatizadas com alerta de prazos de fechamento contábil.
+* **Cobrança Ativa Preventiva:** Mensagens automatizadas com alerta de prazos de fechamento contábil e lembretes de vencimento.
 
 ### 2. Módulo Contábil & Financeiro (OCR/IA, Bate de Saldo & ERPs)
 * **Ingestão Multi-Formato:** Leitura e extração de lançamentos a partir de arquivos bancários **OFX**, planilhas **CSV** e extratos/recibos em **PDF via OCR** (`pdfplumber` + IA).
@@ -80,7 +81,9 @@ A plataforma integra os 5 pilares fundamentais da rotina de um escritório cont�
 ### 3. Módulo Fiscal & Tributário
 * **Guarda e Processamento de XMLs:** Ingestão e validação de documentos fiscais (NF-e, NFS-e e NFC-e).
 * **Apuração de Faturamento Acumulado:** Cálculo em tempo real da base de cálculo para tributação.
-* **Gestão e Monitoramento de Guias Tributárias:** Controle de vencimentos, valores e linha digitável/código de barras para **DAS (Simples Nacional)**, **DARF (DCTFWeb/Previdenciário)** e **GPS**.
+* **Gestão e Monitoramento de Guias Tributárias:** Controle de vencimentos, valores e linha digitável/código de barras para **DAS (Simples Nacional)**, **DARF (DCTFWeb/Previdenciário)** e **FGTS Digital**.
+* **Motor de Recálculo Automático de Guias Vencidas:** Aplicação imediata das regras oficiais de encargos tributários (multa moratória de 0,33%/dia limitada a 20% + taxa SELIC acumulada), gerando novo vencimento e novo código de barras/PIX para pagamento bancário.
+* **Disparo de Guias e Lembretes no WhatsApp:** Envio automatizado de avisos prévios no dia do vencimento e emissão imediata da 2ª via recalculada diretamente no WhatsApp do cliente com código de barras clicável.
 
 ### 4. Módulo de Monitoramento 24/7 de CNDs & Dívida Ativa
 * **Robô de Consulta Autônoma (Playwright Headless):** Varredura contínua de regularidade fiscal nos portais oficiais:

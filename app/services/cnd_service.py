@@ -37,7 +37,7 @@ class CNDService:
         emissao = hoje.strftime("%d/%m/%Y")
 
         dados_iniciais = [
-            # --- TENANT 1: ESCRITÓRIO PILOTO DA PROFESSORA ---
+            # --- TENANT 1: ESCRITÓRIO CONTÁBIL PILOTO (ENTERPRISE) ---
             {
                 "id": "emp-01",
                 "tenant_id": "escritorio-piloto-01",

@@ -271,13 +271,23 @@ class GuiaTributaria(BaseModel):
     empresa_id: str
     empresa_nome: str
     cnpj: str
-    tributo: str  # "DAS - Simples Nacional (PGDAS-D)", "DARF - PIS/COFINS", "DARF - IRPJ/CSLL", "GARE/DARE - ICMS", "ISS Municipal"
+    tributo: str  # "DAS - Simples Nacional (PGDAS-D)", "DARF - PIS/COFINS", "DARF - IRPJ/CSLL", "GARE/DARE - ICMS", "ISS Municipal", "FGTS Digital / DAE"
     competencia: str
     vencimento: str
     valor: float
+    valor_original: Optional[float] = None
+    multa_juros: float = 0.00
+    recalculada: bool = False
     codigo_barras: str
     pix_copia_e_cola: str
-    status_envio: str  # "ENVIADA_WHATSAPP_EMAIL", "GERADA_AGUARDANDO_ENVIO", "PAGA_CONCILIADA"
+    status_envio: str  # "ENVIADA_WHATSAPP_EMAIL", "GERADA_AGUARDANDO_ENVIO", "PAGA_CONCILIADA", "RECALCULADA_COM_ENCARGOS"
+    mensagem_whatsapp_status: Optional[str] = None
+
+
+class AutoatendimentoWhatsAppRequest(BaseModel):
+    empresa_id: str
+    tipo_solicitacao: str = "CND_TODAS"  # "CND_TODAS", "SEGUNDA_VIA_DAS", "SEGUNDA_VIA_FGTS"
+    mensagem_cliente: Optional[str] = None
 
 
 class ImportarXMLRequest(BaseModel):
