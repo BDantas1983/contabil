@@ -894,7 +894,7 @@ class ModulesService:
             for c in checklists:
                 rls_db.upsert(self.COL_CHECKLIST, c.id, c.tenant_id, c.model_dump())
 
-        if rls_db.count_collection(self.COL_CONTABIL) == 0:
+        if rls_db.count_collection(self.COL_CONTABIL) < 5:
             lancamentos = [
                 LancamentoContabil(
                     id="lct-01",
@@ -944,11 +944,43 @@ class ModulesService:
                     origem_arquivo="Comprovante_PDF_OCR.pdf",
                     status_conciliacao="CONCILIADO_IA",
                 ),
+                LancamentoContabil(
+                    id="lct-04",
+                    tenant_id="escritorio-piloto-01",
+                    empresa_id="emp-03",
+                    empresa_nome="Clínica Médica e Diagnósticos São Lucas S/S",
+                    data_lancamento="06/11/2026",
+                    historico_original="CONVENIO UNIMED REPASSE CONSULTAS MEDICOS",
+                    valor=38200.00,
+                    tipo_dc="C",
+                    conta_debito="1.1.01.002 - Banco Itaú C/C",
+                    conta_credito="3.1.01.001 - Receita de Serviços Médicos",
+                    categoria_ia="Faturamento / Convênios",
+                    confianca_ia_pct=99.1,
+                    origem_arquivo="Extrato_Itau_Nov2026.ofx",
+                    status_conciliacao="CONCILIADO_IA",
+                ),
+                LancamentoContabil(
+                    id="lct-05",
+                    tenant_id="escritorio-piloto-01",
+                    empresa_id="emp-04",
+                    empresa_nome="Logística e Distribuição Bandeirantes Ltda",
+                    data_lancamento="07/11/2026",
+                    historico_original="POSTO SHELL ABASTECIMENTO DIESEL FROTA",
+                    valor=12450.00,
+                    tipo_dc="D",
+                    conta_debito="4.1.02.008 - Combustíveis e Lubrificantes",
+                    conta_credito="1.1.01.003 - Banco Bradesco C/C",
+                    categoria_ia="Custos Operacionais Frota",
+                    confianca_ia_pct=98.6,
+                    origem_arquivo="Comprovante_PDF_OCR.pdf",
+                    status_conciliacao="CONCILIADO_IA",
+                ),
             ]
             for l in lancamentos:
                 rls_db.upsert(self.COL_CONTABIL, l.id, l.tenant_id, l.model_dump())
 
-        if rls_db.count_collection(self.COL_XMLS) == 0:
+        if rls_db.count_collection(self.COL_XMLS) < 4:
             xmls = [
                 NotaFiscalXML(
                     id="nf-01",
@@ -980,11 +1012,41 @@ class ModulesService:
                     imposto_estimado=7273.86,
                     status_manifesto="CIENCIA_DA_OPERACAO",
                 ),
+                NotaFiscalXML(
+                    id="nf-03",
+                    tenant_id="escritorio-piloto-01",
+                    empresa_id="emp-03",
+                    empresa_nome="Clínica Médica e Diagnósticos São Lucas S/S",
+                    numero_nf="0012890",
+                    chave_acesso="35261133984120000188550010000128901849201988",
+                    tipo_nf="NFS-e (Prefeitura SP)",
+                    emitente_cnpj="33.984.120/0001-88",
+                    emitente_nome="Clínica Médica e Diagnósticos São Lucas S/S",
+                    valor_total=38200.00,
+                    data_emissao="05/11/2026",
+                    imposto_estimado=1910.00,
+                    status_manifesto="XML_CAPTURADO_E_VALIDADO",
+                ),
+                NotaFiscalXML(
+                    id="nf-04",
+                    tenant_id="escritorio-piloto-01",
+                    empresa_id="emp-04",
+                    empresa_nome="Logística e Distribuição Bandeirantes Ltda",
+                    numero_nf="0098124",
+                    chave_acesso="35261150493821000166570010000981241928374610",
+                    tipo_nf="CT-e (Transporte de Cargas)",
+                    emitente_cnpj="50.493.821/0001-66",
+                    emitente_nome="Logística e Distribuição Bandeirantes Ltda",
+                    valor_total=78900.00,
+                    data_emissao="06/11/2026",
+                    imposto_estimado=9468.00,
+                    status_manifesto="CIENCIA_DA_OPERACAO",
+                ),
             ]
             for x in xmls:
                 rls_db.upsert(self.COL_XMLS, x.id, x.tenant_id, x.model_dump())
 
-        if rls_db.count_collection(self.COL_GUIAS) == 0:
+        if rls_db.count_collection(self.COL_GUIAS) < 5:
             guias = [
                 GuiaTributaria(
                     id="guia-01",
@@ -1029,11 +1091,39 @@ class ModulesService:
                     pix_copia_e_cola="00020126580014BR.GOV.BCB.PIX0136mte-fgts-emp01-20261052040000530398654070544.005802BR6008BRASILIA63041A2B",
                     status_envio="VENCIDA_AGUARDANDO_RECALCULO",
                 ),
+                GuiaTributaria(
+                    id="guia-04",
+                    tenant_id="escritorio-piloto-01",
+                    empresa_id="emp-03",
+                    empresa_nome="Clínica Médica e Diagnósticos São Lucas S/S",
+                    cnpj="33.984.120/0001-88",
+                    tributo="ISS Próprio e Retido na Fonte (Prefeitura SP)",
+                    competencia="10/2026",
+                    vencimento="10/12/2026",
+                    valor=1910.00,
+                    codigo_barras="858700000191 000001282622 900733984120 000188202610",
+                    pix_copia_e_cola="00020126580014BR.GOV.BCB.PIX0136pmsp-iss-emp03-20261052040000530398654071910.005802BR6008BRASILIA630488BB",
+                    status_envio="GERADA_AGUARDANDO_ENVIO",
+                ),
+                GuiaTributaria(
+                    id="guia-05",
+                    tenant_id="escritorio-piloto-01",
+                    empresa_id="emp-04",
+                    empresa_nome="Logística e Distribuição Bandeirantes Ltda",
+                    cnpj="50.493.821/0001-66",
+                    tributo="GARE / DARE - ICMS Transporte Interestadual",
+                    competencia="10/2026",
+                    vencimento="15/12/2026",
+                    valor=9468.00,
+                    codigo_barras="858300000946 800009812622 400750493821 000166202610",
+                    pix_copia_e_cola="00020126580014BR.GOV.BCB.PIX0136sefaz-icms-emp04-20261052040000530398654079468.005802BR6008BRASILIA6304CC99",
+                    status_envio="GERADA_AGUARDANDO_ENVIO",
+                ),
             ]
             for g in guias:
                 rls_db.upsert(self.COL_GUIAS, g.id, g.tenant_id, g.model_dump())
 
-        if rls_db.count_collection(self.COL_DP) == 0:
+        if rls_db.count_collection(self.COL_DP) < 4:
             colabs = [
                 ColaboradorDP(
                     id="dp-01",
@@ -1070,6 +1160,44 @@ class ModulesService:
                     salario_liquido=3371.31,
                     data_admissao="10/06/2026",
                     protocolo_esocial_s2200="1.2.202606.000891234",
+                    status_admissao="ATIVO_ESOCIAL_OK",
+                    holerite_enviado=True,
+                ),
+                ColaboradorDP(
+                    id="dp-03",
+                    tenant_id="escritorio-piloto-01",
+                    empresa_id="emp-02",
+                    empresa_nome="Supermercado Progresso da Vila Ltda",
+                    nome_completo="João Paulo dos Santos",
+                    cpf_mascarado="***.889.312-**",
+                    cargo="Operador de Caixa Líder",
+                    cbo="4211-25",
+                    salario_base=2450.00,
+                    inss_desconto=204.30,
+                    irrf_desconto=0.00,
+                    fgts_deposito=196.00,
+                    salario_liquido=2245.70,
+                    data_admissao="15/01/2026",
+                    protocolo_esocial_s2200="1.2.202601.000318992",
+                    status_admissao="ATIVO_ESOCIAL_OK",
+                    holerite_enviado=True,
+                ),
+                ColaboradorDP(
+                    id="dp-04",
+                    tenant_id="escritorio-piloto-01",
+                    empresa_id="emp-04",
+                    empresa_nome="Logística e Distribuição Bandeirantes Ltda",
+                    nome_completo="Marcos Vinicius da Rocha",
+                    cpf_mascarado="***.551.209-**",
+                    cargo="Motorista Carreteiro Interestadual",
+                    cbo="7825-10",
+                    salario_base=4600.00,
+                    inss_desconto=481.20,
+                    irrf_desconto=288.45,
+                    fgts_deposito=368.00,
+                    salario_liquido=3830.35,
+                    data_admissao="01/04/2026",
+                    protocolo_esocial_s2200="1.2.202604.000778129",
                     status_admissao="ATIVO_ESOCIAL_OK",
                     holerite_enviado=True,
                 ),

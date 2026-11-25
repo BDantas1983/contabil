@@ -37,6 +37,25 @@ function fecharModalLogin() {
   document.getElementById("modal-login").classList.remove("flex");
 }
 
+function restaurarSessaoAdmin() {
+  sessaoUsuario = {
+    id: "usr-admin-01",
+    nome: "Dra. Helena Martins",
+    email: "contadora.master@escritorio.com.br",
+    role: "ADMIN_ESCRITORIO",
+    role_label: "Administrador do Escritório",
+    tenant_id: "escritorio-piloto-01",
+    empresa_vinculada_id: null,
+    empresa_vinculada_nome: null
+  };
+  localStorage.setItem("auditcontabil_sessao", JSON.stringify(sessaoUsuario));
+  const selectTenant = document.getElementById("select-tenant");
+  if (selectTenant) selectTenant.value = "escritorio-piloto-01";
+  trocarTenantRLS("escritorio-piloto-01");
+  aplicarPerfilVisualUsuario();
+  carregarTudo();
+}
+
 function switchLoginTab(tab) {
   const contentAcessar = document.getElementById("content-login-acessar");
   const contentNovo = document.getElementById("content-login-novo");
@@ -846,7 +865,6 @@ async function simularAutoatendimentoCND() {
   } catch (e) {
     console.error("Erro no autoatendimento CND:", e);
   }
-}
 }
 
 async function importarXMLFiscal() {
