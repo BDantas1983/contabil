@@ -3,7 +3,7 @@
 let ultimoArquivoERP = { nome: "LOTE_CONTABIL.txt", conteudo: "" };
 let sessaoUsuario = JSON.parse(localStorage.getItem("auditcontabil_sessao") || "null") || {
   id: "usr-admin-01",
-  nome: "Profa. Dra. Helena Martins",
+  nome: "Dra. Helena Martins",
   email: "contadora.master@escritorio.com.br",
   role: "ADMIN_ESCRITORIO",
   role_label: "Administrador do Escritório",
@@ -12,7 +12,22 @@ let sessaoUsuario = JSON.parse(localStorage.getItem("auditcontabil_sessao") || "
   empresa_vinculada_nome: null
 };
 
+function sincronizarAlturaTopoFixo() {
+  const shell = document.getElementById("fixed-top-shell");
+  const spacer = document.getElementById("fixed-top-spacer");
+  if (shell && spacer) {
+    spacer.style.height = `${shell.offsetHeight}px`;
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  sincronizarAlturaTopoFixo();
+  const shell = document.getElementById("fixed-top-shell");
+  if (shell && typeof ResizeObserver !== "undefined") {
+    new ResizeObserver(sincronizarAlturaTopoFixo).observe(shell);
+  }
+  window.addEventListener("resize", sincronizarAlturaTopoFixo);
+
   aplicarPerfilVisualUsuario();
   carregarTudo();
   // Atualiza o relógio do TOTP RFC 6238 a cada 3 segundos quando estiver na aba de segurança

@@ -13,101 +13,107 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
 
-  <!-- TOPBAR EXECUTIVA: MULTI-TENANT RLS + IAM RBAC + SOBERANIA NACIONAL -->
-  <header class="bg-slate-900 text-white shadow-lg border-b border-slate-800 sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex flex-wrap items-center justify-between gap-3">
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center font-bold text-slate-950 text-xl shadow-md">
-          <i class="fa-solid fa-shield-halved"></i>
-        </div>
-        <div>
-          <div class="flex items-center gap-2">
-            <h1 class="text-base sm:text-lg font-bold tracking-tight text-white">AuditContábil AI</h1>
-            <span class="text-[11px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded-full font-mono font-semibold">
-              Playbook Full v2.0
-            </span>
-          </div>
-          <p class="text-[11px] text-slate-400">
-            Automação Contábil em Python (70% Rotinas) • Security-by-Design (ISO 27001 / NIST / OWASP / LGPD)
-          </p>
-        </div>
-      </div>
-
-      <!-- CONTROLES ZERO TRUST: SELETOR DE TENANT (RLS) & RBAC -->
-      <div class="flex flex-wrap items-center gap-2">
-        <!-- PERFIL DO USUÁRIO LOGADO -->
-        <div class="bg-slate-800/90 border border-slate-700 rounded-lg px-2.5 py-1 flex items-center gap-2 text-xs">
-          <div class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-[10px]" id="user-avatar">
-            <i class="fa-solid fa-user"></i>
+  <!-- CONTAINER FIXO NO TOPO: HEADER + BARRA DE NAVEGAÇÃO DAS ABAS SEMPRE FIXOS NA ROLAGEM -->
+  <div id="fixed-top-shell" class="fixed top-0 left-0 right-0 z-40 w-full shadow-md">
+    <!-- TOPBAR EXECUTIVA: MULTI-TENANT RLS + IAM RBAC + SOBERANIA NACIONAL -->
+    <header class="bg-slate-900 text-white border-b border-slate-800">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center font-bold text-slate-950 text-xl shadow-md">
+            <i class="fa-solid fa-shield-halved"></i>
           </div>
           <div>
-            <div class="font-bold text-white text-[11px] leading-tight" id="user-display-nome">Profa. Helena Martins</div>
-            <div class="text-[10px] text-emerald-400 font-mono" id="user-display-role">Admin Escritório</div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-base sm:text-lg font-bold tracking-tight text-white">AuditContábil AI</h1>
+              <span class="text-[11px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded-full font-mono font-semibold">
+                Enterprise v2.0
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-400">
+              Automação Contábil em Python (70% Rotinas) • Security-by-Design (ISO 27001 / NIST / OWASP / LGPD)
+            </p>
           </div>
-          <button onclick="abrirModalLogin()" class="ml-1 px-2 py-0.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded text-[10px] font-semibold transition" title="Trocar Usuário / Acessar como outra empresa">
-            <i class="fa-solid fa-arrow-right-to-bracket mr-1"></i> Entrar / Trocar
-          </button>
-          <button onclick="restaurarSessaoAdmin()" class="px-2 py-0.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded text-[10px] font-semibold transition" title="Restaurar Visão Geral com Todas as Empresas e Dados">
-            <i class="fa-solid fa-arrows-rotate mr-1 text-emerald-400"></i> Visão Completa
-          </button>
         </div>
 
-        <div class="bg-slate-800/90 border border-slate-700 rounded-lg px-2.5 py-1 flex items-center gap-2 text-xs">
-          <i class="fa-solid fa-database text-blue-400" title="Isolamento PostgreSQL Row-Level Security"></i>
-          <span class="text-slate-400 text-[11px] hidden sm:inline">Tenant RLS:</span>
-          <select id="select-tenant" onchange="trocarTenantRLS(this.value)" class="bg-transparent text-white font-medium text-xs focus:outline-none cursor-pointer">
-            <option value="escritorio-piloto-01" class="bg-slate-900 text-white">escritorio-piloto-01 (Contábil Vanguarda - Pro)</option>
-            <option value="escritorio-demo-02" class="bg-slate-900 text-white">escritorio-demo-02 (Prime Contábil - Starter)</option>
-          </select>
-        </div>
+        <!-- CONTROLES ZERO TRUST: SELETOR DE TENANT (RLS) & RBAC -->
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- PERFIL DO USUÁRIO LOGADO -->
+          <div class="bg-slate-800/90 border border-slate-700 rounded-lg px-2.5 py-1 flex items-center gap-2 text-xs">
+            <div class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-[10px]" id="user-avatar">
+              <i class="fa-solid fa-user"></i>
+            </div>
+            <div>
+              <div class="font-bold text-white text-[11px] leading-tight" id="user-display-nome">Dra. Helena Martins</div>
+              <div class="text-[10px] text-emerald-400 font-mono" id="user-display-role">Admin Escritório</div>
+            </div>
+            <button onclick="abrirModalLogin()" class="ml-1 px-2 py-0.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded text-[10px] font-semibold transition" title="Trocar Usuário / Acessar como outra empresa">
+              <i class="fa-solid fa-arrow-right-to-bracket mr-1"></i> Entrar / Trocar
+            </button>
+            <button onclick="restaurarSessaoAdmin()" class="px-2 py-0.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded text-[10px] font-semibold transition" title="Restaurar Visão Geral com Todas as Empresas e Dados">
+              <i class="fa-solid fa-arrows-rotate mr-1 text-emerald-400"></i> Visão Completa
+            </button>
+          </div>
 
-        <a href="/docs" target="_blank" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 shadow-sm">
-          <i class="fa-solid fa-code"></i> API /docs
-        </a>
+          <div class="bg-slate-800/90 border border-slate-700 rounded-lg px-2.5 py-1 flex items-center gap-2 text-xs">
+            <i class="fa-solid fa-database text-blue-400" title="Isolamento PostgreSQL Row-Level Security"></i>
+            <span class="text-slate-400 text-[11px] hidden sm:inline">Tenant RLS:</span>
+            <select id="select-tenant" onchange="trocarTenantRLS(this.value)" class="bg-transparent text-white font-medium text-xs focus:outline-none cursor-pointer">
+              <option value="escritorio-piloto-01" class="bg-slate-900 text-white">escritorio-piloto-01 (Contábil Vanguarda - Pro)</option>
+              <option value="escritorio-demo-02" class="bg-slate-900 text-white">escritorio-demo-02 (Prime Contábil - Starter)</option>
+            </select>
+          </div>
+
+          <a href="/docs" target="_blank" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 shadow-sm">
+            <i class="fa-solid fa-code"></i> API /docs
+          </a>
+        </div>
       </div>
-    </div>
 
-    <!-- BARRA DE CONTEXTO DO TENANT E RBAC ATIVO -->
-    <div class="bg-slate-950/80 border-t border-slate-800/80 px-4 py-1.5 text-[11px] text-slate-300">
-      <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
-        <div class="flex items-center gap-2">
-          <span class="font-mono text-emerald-400" id="banner-rls-cmd">SET LOCAL app.current_tenant_id = 'escritorio-piloto-01';</span>
-          <span class="text-slate-600">|</span>
-          <span id="banner-escritorio-nome" class="font-medium text-white">Contábil Vanguarda & Associados (Escritório Modelo)</span>
-        </div>
-        <div id="banner-rbac-permissoes" class="text-slate-400">
-          <i class="fa-solid fa-check-double text-emerald-400 mr-1"></i> RBAC: Acesso Total (Cofre A1, CNDs, Conciliação IA, Fiscal, DP e SIEM WORM)
+      <!-- BARRA DE CONTEXTO DO TENANT E RBAC ATIVO -->
+      <div class="bg-slate-950/95 border-t border-slate-800/80 px-4 py-1.5 text-[11px] text-slate-300">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="font-mono text-emerald-400" id="banner-rls-cmd">SET LOCAL app.current_tenant_id = 'escritorio-piloto-01';</span>
+            <span class="text-slate-600">|</span>
+            <span id="banner-escritorio-nome" class="font-medium text-white">Contábil Vanguarda & Associados (Escritório Modelo)</span>
+          </div>
+          <div id="banner-rbac-permissoes" class="text-slate-400">
+            <i class="fa-solid fa-check-double text-emerald-400 mr-1"></i> RBAC: Acesso Total (Cofre A1, CNDs, Conciliação IA, Fiscal, DP e SIEM WORM)
+          </div>
         </div>
       </div>
-    </div>
-  </header>
+    </header>
 
-  <!-- NAVEGAÇÃO PRINCIPAL (TODOS OS MÓDULOS DO PLAYBOOK) -->
-  <nav class="bg-white border-b border-slate-200 shadow-sm sticky top-[84px] z-40">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 sm:space-x-4 overflow-x-auto custom-scroll">
-      <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn py-3.5 px-3 border-b-2 font-semibold text-xs border-emerald-600 text-emerald-600 whitespace-nowrap flex items-center gap-1.5">
-        <i class="fa-solid fa-shield-check"></i> 1. Monitor CNDs & Playwright
-      </button>
-      <button onclick="switchTab('coleta')" id="tab-coleta" class="tab-btn py-3.5 px-3 border-b-2 font-semibold text-xs border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap flex items-center gap-1.5">
-        <i class="fa-brands fa-whatsapp text-emerald-600"></i> 2. Coleta WhatsApp & Checklist
-      </button>
-      <button onclick="switchTab('contabil')" id="tab-contabil" class="tab-btn py-3.5 px-3 border-b-2 font-semibold text-xs border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap flex items-center gap-1.5">
-        <i class="fa-solid fa-brain text-indigo-600"></i> 3. Contábil OCR/IA & ERPs
-      </button>
-      <button onclick="switchTab('fiscal')" id="tab-fiscal" class="tab-btn py-3.5 px-3 border-b-2 font-semibold text-xs border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap flex items-center gap-1.5">
-        <i class="fa-solid fa-file-invoice-dollar text-amber-600"></i> 4. Fiscal XMLs & Guias DAS/DARF
-      </button>
-      <button onclick="switchTab('dp')" id="tab-dp" class="tab-btn py-3.5 px-3 border-b-2 font-semibold text-xs border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap flex items-center gap-1.5">
-        <i class="fa-solid fa-id-card-clip text-blue-600"></i> 5. DP / eSocial & Holerites LGPD
-      </button>
-      <button onclick="switchTab('security')" id="tab-security" class="tab-btn py-3.5 px-3 border-b-2 font-semibold text-xs border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap flex items-center gap-1.5">
-        <i class="fa-solid fa-vault text-rose-600"></i> 6. Segurança ISO 27001, Cofre A1 & SIEM
-      </button>
-      <button onclick="switchTab('negocio')" id="tab-negocio" class="tab-btn py-3.5 px-3 border-b-2 font-semibold text-xs border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap flex items-center gap-1.5">
-        <i class="fa-solid fa-server text-purple-600"></i> 7. Workers Python, Custos VPS & Pricing
-      </button>
-    </div>
-  </nav>
+    <!-- NAVEGAÇÃO PRINCIPAL FIXA NA TELA -->
+    <nav class="bg-white/95 backdrop-blur-md border-b border-slate-200">
+      <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex flex-wrap items-center justify-start lg:justify-between gap-x-1 gap-y-0.5">
+        <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn py-2.5 px-2 border-b-2 font-semibold text-[11px] xl:text-xs border-emerald-600 text-emerald-600 whitespace-nowrap flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-shield-check"></i> 1. Monitor CNDs & Playwright
+        </button>
+        <button onclick="switchTab('coleta')" id="tab-coleta" class="tab-btn py-2.5 px-2 border-b-2 font-semibold text-[11px] xl:text-xs border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap flex items-center gap-1.5 transition">
+          <i class="fa-brands fa-whatsapp text-emerald-600"></i> 2. Coleta WhatsApp & Checklist
+        </button>
+        <button onclick="switchTab('contabil')" id="tab-contabil" class="tab-btn py-2.5 px-2 border-b-2 font-semibold text-[11px] xl:text-xs border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-brain text-indigo-600"></i> 3. Contábil OCR/IA & ERPs
+        </button>
+        <button onclick="switchTab('fiscal')" id="tab-fiscal" class="tab-btn py-2.5 px-2 border-b-2 font-semibold text-[11px] xl:text-xs border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-file-invoice-dollar text-amber-600"></i> 4. Fiscal XMLs & Guias DAS/DARF
+        </button>
+        <button onclick="switchTab('dp')" id="tab-dp" class="tab-btn py-2.5 px-2 border-b-2 font-semibold text-[11px] xl:text-xs border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-id-card-clip text-blue-600"></i> 5. DP / eSocial & Holerites LGPD
+        </button>
+        <button onclick="switchTab('security')" id="tab-security" class="tab-btn py-2.5 px-2 border-b-2 font-semibold text-[11px] xl:text-xs border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-vault text-rose-600"></i> 6. Segurança ISO 27001 & Cofre A1
+        </button>
+        <button onclick="switchTab('negocio')" id="tab-negocio" class="tab-btn py-2.5 px-2 border-b-2 font-semibold text-[11px] xl:text-xs border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-server text-purple-600"></i> 7. Workers, Custos & Planos
+        </button>
+      </div>
+    </nav>
+  </div>
+
+  <!-- ESPAÇADOR AUTOMÁTICO PARA COMPENSAR A ALTURA EXATA DA BARRA FIXA -->
+  <div id="fixed-top-spacer" class="h-[136px] shrink-0"></div>
 
   <!-- CONTEÚDO PRINCIPAL -->
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
